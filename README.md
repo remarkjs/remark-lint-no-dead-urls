@@ -1,6 +1,8 @@
 # remark-lint-no-dead-links
 
-🚧🚧 **EXPERIMENTAL! WORK IN PROGRESS! 🚧🚧
+[![Build Status](https://travis-ci.org/davidtheclark/remark-lint-no-dead-links.svg?branch=master)](https://travis-ci.org/davidtheclark/remark-lint-no-dead-links)
+
+🚧🚧 **EXPERIMENTAL! WORK IN PROGRESS!** 🚧🚧
 
 [remark-lint](https://github.com/wooorm/remark-lint) plugin to ensure that external links in your Markdown are alive.
 
