@@ -8,10 +8,18 @@
 
 Uses [link-check](https://github.com/tcort/link-check) to validate links.
 
-Options: `string`.
+Options: `Object` or `string`. Optional.
 
-If a string is provided, it is used as a base URL against which relative URLs are checked.
-See examples below.
+An options `Object` can have the following properties:
+
+- **baseUrl** `string` - Used as the base URL against which relative URLs are checked.
+  For example, with `baseUrl: 'https://www.github.com'`, the relative URL `/davidtheclark` is checked as `https://www.github.com/davidtheclark`.
+  **By default, relative URLs are ignored: you must provide this option to check them.**
+- **cache** `Object` - By default, URLs are cached internally to avoid repeated checks.
+  If you want to manage the cache yourself (maybe even write it to disk between runs), you can provide a cache `Object` that will be read from and written to.
+  The cache will be populated with properties whose keys are URLs are values are `'alive'` or `'dead'`.
+
+An options `string` is interpreted as `baseUrl` (above).
 
 ## Example
 

@@ -4,8 +4,10 @@
   "description": "Ensure that external links in your Markdown are alive",
   "main": "index.js",
   "scripts": {
-    "test-jest": "jest",
+    "precommit": "lint-staged",
+    "format": "prettier --single-quote --write \"*.js\"",
     "lint": "eslint .",
+    "test-jest": "jest",
     "pretest": "npm run lint",
     "test": "jest"
   },
@@ -28,7 +30,7 @@
   "homepage": "https://github.com/davidtheclark/remark-lint-no-dead-links#readme",
   "dependencies": {
     "is-relative-url": "^2.0.0",
-    "link-check": "^4.0.3",
+    "link-check": "^4.1.0",
     "unified-lint-rule": "^1.0.1",
     "unist-util-visit": "^1.1.3"
   },
@@ -36,7 +38,23 @@
     "dedent": "^0.7.0",
     "eslint": "^4.1.1",
     "eslint-plugin-node": "^5.1.0",
+    "husky": "^0.14.2",
     "jest": "^20.0.4",
+    "lint-staged": "^4.0.0",
+    "prettier": "^1.5.2",
     "remark": "^7.0.1"
+  },
+  "jest": {
+    "clearMocks": true
+  },
+  "engines": {
+    "node": ">=4"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint",
+      "prettier --single-quote --write",
+      "git add"
+    ]
   }
 }

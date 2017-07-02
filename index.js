@@ -5,23 +5,59 @@ const visit = require('unist-util-visit');
 const linkCheck = require('link-check');
 const isRelativeUrl = require('is-relative-url');
 
-function noDeadLinks(ast, file, baseUrl) {
-  const promises = [];
+const defaultCache = {};
+const pending = new Map();
+
+function noDeadLinks(ast, file, options) {
+  let baseUrl;
+  if (typeof options === 'string') {
+    baseUrl = options;
+    options = {};
+  } else {
+    options = options || {};
+    baseUrl = options.baseUrl;
+  }
+  const cache = options.cache || defaultCache;
+
+  const warn = node => {
+    file.message(`Link to ${node.url} is dead`, node);
+  };
+
+  // Ensure there's at least one Promise to resolve
+  const promises = [Promise.resolve()];
 
   function validate(node) {
     let url = node.url;
     if (!url) return;
+
+    if (cache[url] !== undefined) {
+      if (cache[url] !== 'alive') warn(node);
+      return;
+    }
+
+    if (pending.has(url)) {
+      promises.push(
+        pending.get(url).then(status => {
+          if (status !== 'alive') warn(node);
+        })
+      );
+      return;
+    }
+
     if (isRelativeUrl(url) && !baseUrl) return;
-    const nodePromise = new Promise((resolve, reject) => {
+    const checkUrl = new Promise((resolve, reject) => {
       linkCheck(url, { baseUrl }, (error, result) => {
         if (error) return reject(error);
         if (result.status !== 'alive') {
-          file.message(`Link to ${node.url} is dead`, node);
+          warn(node);
         }
-        resolve();
+        cache[url] = result.status;
+        pending.delete(url);
+        resolve(result.status);
       });
     });
-    promises.push(nodePromise);
+    pending.set(url, checkUrl);
+    promises.push(checkUrl);
   }
 
   visit(ast, 'link', validate);
