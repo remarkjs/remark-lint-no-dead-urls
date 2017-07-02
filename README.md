@@ -1,12 +1,23 @@
-# remark-lint-no-dead-links
+# remark-lint-no-dead-urls
 
-[![Build Status](https://travis-ci.org/davidtheclark/remark-lint-no-dead-links.svg?branch=master)](https://travis-ci.org/davidtheclark/remark-lint-no-dead-links)
+[![Build Status](https://travis-ci.org/davidtheclark/remark-lint-no-dead-urls.svg?branch=master)](https://travis-ci.org/davidtheclark/remark-lint-no-dead-urls)
 
 🚧🚧 **EXPERIMENTAL! WORK IN PROGRESS!** 🚧🚧
 
-[remark-lint](https://github.com/wooorm/remark-lint) plugin to ensure that external links in your Markdown are alive.
+[remark-lint](https://github.com/wooorm/remark-lint) plugin to ensure that external URLs in your Markdown are alive.
+Checks all of the following:
 
-Uses [link-check](https://github.com/tcort/link-check) to validate links.
+```md
+Checks [links](https://www.github.com).
+
+Checks images: ![horse](/path/to/horse.jpg)
+
+Checks definitions: see the [walrus].
+
+[walrus]: /path/to/walrus.jpg
+```
+
+Uses [link-check](https://github.com/tcort/link-check) to check URLs against the real internet.
 
 Options: `Object` or `string`. Optional.
 

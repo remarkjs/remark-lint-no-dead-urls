@@ -1,7 +1,7 @@
 {
-  "name": "remark-lint-no-dead-links",
+  "name": "remark-lint-no-dead-urls",
   "version": "0.1.0",
-  "description": "Ensure that external links in your Markdown are alive",
+  "description": "Ensure that URLs in your Markdown are alive",
   "main": "index.js",
   "scripts": {
     "precommit": "lint-staged",
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/davidtheclark/remark-lint-no-dead-links.git"
+    "url": "git+https://github.com/davidtheclark/remark-lint-no-dead-urls.git"
   },
   "keywords": [
     "remark",
@@ -25,9 +25,9 @@
   "author": "David Clark",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/davidtheclark/remark-lint-no-dead-links/issues"
+    "url": "https://github.com/davidtheclark/remark-lint-no-dead-urls/issues"
   },
-  "homepage": "https://github.com/davidtheclark/remark-lint-no-dead-links#readme",
+  "homepage": "https://github.com/davidtheclark/remark-lint-no-dead-urls#readme",
   "dependencies": {
     "is-relative-url": "^2.0.0",
     "link-check": "^4.1.0",

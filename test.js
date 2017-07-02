@@ -13,7 +13,7 @@ const processMarkdown = (md, baseUrl) => {
   return remark().use(plugin, baseUrl).process(md);
 };
 
-describe('remark-lint-no-dead-links', () => {
+describe('remark-lint-no-dead-urls', () => {
   test('works with no URLs', () => {
     const lint = processMarkdown(dedent`
       # Title
@@ -198,6 +198,42 @@ describe('remark-lint-no-dead-links', () => {
       expect(vFile.messages[0].reason).toBe(
         'Link to /wooorm/reeeehype is dead'
       );
+    });
+  });
+
+  test('works with definitions and images', () => {
+    const lint = processMarkdown(
+      dedent`
+      # Title
+
+      Here is a good pig: ![picture of pig](/pig-photos/384).
+
+      Download the pig picture [here](/pig-photos/384).
+
+      Here is a [bad link]. Here is that [bad link] again.
+
+      [bad link]: /oops/broken
+    `,
+      { baseUrl: 'http://my.domain.com' }
+    );
+
+    expect(linkCheck).toHaveBeenCalledTimes(2);
+    expect(linkCheck.mock.calls[0][0]).toBe('/pig-photos/384');
+    expect(linkCheck.mock.calls[0][1]).toEqual({
+      baseUrl: 'http://my.domain.com'
+    });
+    expect(linkCheck.mock.calls[1][0]).toBe('/oops/broken');
+    expect(linkCheck.mock.calls[1][1]).toEqual({
+      baseUrl: 'http://my.domain.com'
+    });
+
+    // Invoke the callbacks
+    linkCheck.mock.calls[0][2](null, { status: 'alive' });
+    linkCheck.mock.calls[1][2](null, { status: 'dead' });
+
+    return lint.then(vFile => {
+      expect(vFile.messages.length).toBe(1);
+      expect(vFile.messages[0].reason).toBe('Link to /oops/broken is dead');
     });
   });
 });

@@ -8,7 +8,7 @@ const isRelativeUrl = require('is-relative-url');
 const defaultCache = {};
 const pending = new Map();
 
-function noDeadLinks(ast, file, options) {
+function noDeadUrls(ast, file, options) {
   let baseUrl;
   if (typeof options === 'string') {
     baseUrl = options;
@@ -25,8 +25,7 @@ function noDeadLinks(ast, file, options) {
 
   // Ensure there's at least one Promise to resolve
   const promises = [Promise.resolve()];
-
-  function validate(node) {
+  const validate = node => {
     let url = node.url;
     if (!url) return;
 
@@ -58,11 +57,13 @@ function noDeadLinks(ast, file, options) {
     });
     pending.set(url, checkUrl);
     promises.push(checkUrl);
-  }
+  };
 
   visit(ast, 'link', validate);
+  visit(ast, 'definition', validate);
+  visit(ast, 'image', validate);
 
   return Promise.all(promises);
 }
 
-module.exports = rule('remark-lint:no-dead-links', noDeadLinks);
+module.exports = rule('remark-lint:no-dead-urls', noDeadUrls);
