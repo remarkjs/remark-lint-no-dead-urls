@@ -2,8 +2,6 @@
 
 [![Build Status](https://travis-ci.org/davidtheclark/remark-lint-no-dead-urls.svg?branch=master)](https://travis-ci.org/davidtheclark/remark-lint-no-dead-urls)
 
-🚧🚧 **EXPERIMENTAL! WORK IN PROGRESS!** 🚧🚧
-
 [remark-lint](https://github.com/wooorm/remark-lint) plugin to ensure that external URLs in your Markdown are alive.
 Checks all of the following:
 
@@ -31,6 +29,8 @@ An options `Object` can have the following properties:
   The cache will be populated with properties whose keys are URLs are values are `'alive'` or `'dead'`.
 
 An options `string` is interpreted as `baseUrl` (above).
+
+**Does not check absolute URLs with protocols other than `http:` and `https:`.**
 
 ## Example
 

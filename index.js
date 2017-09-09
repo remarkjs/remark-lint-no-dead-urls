@@ -1,5 +1,6 @@
 'use strict';
 
+const url = require('url');
 const rule = require('unified-lint-rule');
 const visit = require('unist-util-visit');
 const linkCheck = require('link-check');
@@ -7,6 +8,7 @@ const isRelativeUrl = require('is-relative-url');
 
 const defaultCache = {};
 const pending = new Map();
+const protocolWhitelist = new Set(['https:', 'http:']);
 
 function noDeadUrls(ast, file, options) {
   let baseUrl;
@@ -23,39 +25,49 @@ function noDeadUrls(ast, file, options) {
     file.message(`Link to ${node.url} is dead`, node);
   };
 
+  const skipUrl = subjectUrl => {
+    if (isRelativeUrl(subjectUrl)) {
+      return !baseUrl;
+    } else {
+      const parsedUrl = url.parse(subjectUrl);
+      return !protocolWhitelist.has(parsedUrl.protocol);
+    }
+  };
+
   // Ensure there's at least one Promise to resolve
   const promises = [Promise.resolve()];
   const validate = node => {
-    let url = node.url;
-    if (!url) return;
+    let subjectUrl = node.url;
+    if (!subjectUrl) return;
 
-    if (cache[url] !== undefined) {
-      if (cache[url] !== 'alive') warn(node);
+    if (skipUrl(subjectUrl)) return;
+
+    if (cache[subjectUrl] !== undefined) {
+      if (cache[subjectUrl] !== 'alive') warn(node);
       return;
     }
 
-    if (pending.has(url)) {
+    if (pending.has(subjectUrl)) {
       promises.push(
-        pending.get(url).then(status => {
+        pending.get(subjectUrl).then(status => {
           if (status !== 'alive') warn(node);
         })
       );
       return;
     }
 
-    if (isRelativeUrl(url) && !baseUrl) return;
     const checkUrl = new Promise((resolve, reject) => {
-      linkCheck(url, { baseUrl }, (error, result) => {
+      linkCheck(subjectUrl, { baseUrl }, (error, result) => {
         if (error) return reject(error);
         if (result.status !== 'alive') {
           warn(node);
         }
-        cache[url] = result.status;
-        pending.delete(url);
+        cache[subjectUrl] = result.status;
+        pending.delete(subjectUrl);
         resolve(result.status);
       });
     });
-    pending.set(url, checkUrl);
+    pending.set(subjectUrl, checkUrl);
     promises.push(checkUrl);
   };
 

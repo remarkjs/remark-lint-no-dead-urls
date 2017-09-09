@@ -236,4 +236,18 @@ describe('remark-lint-no-dead-urls', () => {
       expect(vFile.messages[0].reason).toBe('Link to /oops/broken is dead');
     });
   });
+
+  test('skips URLs with output http: or https: protocols', () => {
+    const lint = processMarkdown(dedent`
+      [Send me an email.](mailto:me@me.com)
+      [Look at this file.](ftp://path/to/file.txt)
+      [Special schema.](flopper://a/b/c)
+    `);
+
+    expect(linkCheck).toHaveBeenCalledTimes(0);
+
+    return lint.then(vFile => {
+      expect(vFile.messages.length).toBe(0);
+    });
+  });
 });
