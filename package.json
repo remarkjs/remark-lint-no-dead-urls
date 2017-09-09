@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "precommit": "lint-staged",
-    "format": "prettier --single-quote --write \"*.js\"",
+    "format": "prettier --write \"*.js\"",
     "lint": "eslint .",
     "test-jest": "jest",
     "pretest": "npm run lint",
@@ -45,7 +45,11 @@
     "remark": "^8.0.0"
   },
   "jest": {
+    "testEnvironment": "node",
     "clearMocks": true
+  },
+  "prettier": {
+    "singleQuote": true
   },
   "engines": {
     "node": ">=4"
@@ -53,7 +57,7 @@
   "lint-staged": {
     "*.js": [
       "eslint",
-      "prettier --single-quote --write",
+      "prettier --write",
       "git add"
     ]
   }

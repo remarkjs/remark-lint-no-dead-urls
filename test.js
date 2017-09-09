@@ -10,7 +10,9 @@ jest.mock('link-check', () => {
 });
 
 const processMarkdown = (md, baseUrl) => {
-  return remark().use(plugin, baseUrl).process(md);
+  return remark()
+    .use(plugin, baseUrl)
+    .process(md);
 };
 
 describe('remark-lint-no-dead-urls', () => {
