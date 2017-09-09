@@ -29,6 +29,7 @@
   },
   "homepage": "https://github.com/davidtheclark/remark-lint-no-dead-urls#readme",
   "dependencies": {
+    "is-online": "^7.0.0",
     "is-relative-url": "^2.0.0",
     "link-check": "^4.1.0",
     "unified-lint-rule": "^1.0.1",

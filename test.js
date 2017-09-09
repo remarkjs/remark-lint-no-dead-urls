@@ -2,11 +2,16 @@
 
 const remark = require('remark');
 const dedent = require('dedent');
-const plugin = require('./index');
 const linkCheck = require('link-check');
+const isOnline = require('is-online');
+const plugin = require('./index');
 
 jest.mock('link-check', () => {
   return jest.fn();
+});
+
+jest.mock('is-online', () => {
+  return jest.fn(() => Promise.resolve(true));
 });
 
 const processMarkdown = (md, baseUrl) => {
@@ -38,15 +43,19 @@ describe('remark-lint-no-dead-urls', () => {
       Here is a [bad link](https://github.com/unified/oops).
     `);
 
-    expect(linkCheck).toHaveBeenCalledTimes(2);
-    expect(linkCheck.mock.calls[0][0]).toBe('https://www.github.com');
-    expect(linkCheck.mock.calls[0][1]).toEqual({ baseUrl: undefined });
-    expect(linkCheck.mock.calls[1][0]).toBe('https://github.com/unified/oops');
-    expect(linkCheck.mock.calls[1][1]).toEqual({ baseUrl: undefined });
+    process.nextTick(() => {
+      expect(linkCheck).toHaveBeenCalledTimes(2);
+      expect(linkCheck.mock.calls[0][0]).toBe('https://www.github.com');
+      expect(linkCheck.mock.calls[0][1]).toEqual({ baseUrl: undefined });
+      expect(linkCheck.mock.calls[1][0]).toBe(
+        'https://github.com/unified/oops'
+      );
+      expect(linkCheck.mock.calls[1][1]).toEqual({ baseUrl: undefined });
 
-    // Invoke the callbacks
-    linkCheck.mock.calls[0][2](null, { status: 'alive' });
-    linkCheck.mock.calls[1][2](null, { status: 'dead' });
+      // Invoke the callbacks
+      linkCheck.mock.calls[0][2](null, { status: 'alive' });
+      linkCheck.mock.calls[1][2](null, { status: 'dead' });
+    });
 
     return lint.then(vFile => {
       expect(vFile.messages.length).toBe(1);
@@ -77,15 +86,19 @@ describe('remark-lint-no-dead-urls', () => {
       And here it is [again](https://github.com/davidtheclark/oops).
     `);
 
-    expect(linkCheck).toHaveBeenCalledTimes(2);
-    expect(linkCheck.mock.calls[0][0]).toBe('https://github.com/davidtheclark');
-    expect(linkCheck.mock.calls[1][0]).toBe(
-      'https://github.com/davidtheclark/oops'
-    );
+    process.nextTick(() => {
+      expect(linkCheck).toHaveBeenCalledTimes(2);
+      expect(linkCheck.mock.calls[0][0]).toBe(
+        'https://github.com/davidtheclark'
+      );
+      expect(linkCheck.mock.calls[1][0]).toBe(
+        'https://github.com/davidtheclark/oops'
+      );
 
-    // Invoke the callbacks
-    linkCheck.mock.calls[0][2](null, { status: 'alive' });
-    linkCheck.mock.calls[1][2](null, { status: 'dead' });
+      // Invoke the callbacks
+      linkCheck.mock.calls[0][2](null, { status: 'alive' });
+      linkCheck.mock.calls[1][2](null, { status: 'dead' });
+    });
 
     return lint.then(lintAgain).then(vFile => {
       expect(vFile.messages.length).toBe(2);
@@ -127,19 +140,23 @@ describe('remark-lint-no-dead-urls', () => {
       { cache: externalCache }
     );
 
-    expect(linkCheck).toHaveBeenCalledTimes(2);
-    expect(linkCheck.mock.calls[0][0]).toBe('https://github.com/davidtheclark');
-    expect(linkCheck.mock.calls[1][0]).toBe(
-      'https://github.com/davidtheclark/oops'
-    );
-    expect(externalCache['https://github.com/davidtheclark']).toBe(undefined);
-    expect(externalCache['https://github.com/davidtheclark/oops']).toBe(
-      undefined
-    );
+    process.nextTick(() => {
+      expect(linkCheck).toHaveBeenCalledTimes(2);
+      expect(linkCheck.mock.calls[0][0]).toBe(
+        'https://github.com/davidtheclark'
+      );
+      expect(linkCheck.mock.calls[1][0]).toBe(
+        'https://github.com/davidtheclark/oops'
+      );
+      expect(externalCache['https://github.com/davidtheclark']).toBe(undefined);
+      expect(externalCache['https://github.com/davidtheclark/oops']).toBe(
+        undefined
+      );
 
-    // Invoke the callbacks
-    linkCheck.mock.calls[0][2](null, { status: 'alive' });
-    linkCheck.mock.calls[1][2](null, { status: 'dead' });
+      // Invoke the callbacks
+      linkCheck.mock.calls[0][2](null, { status: 'alive' });
+      linkCheck.mock.calls[1][2](null, { status: 'dead' });
+    });
 
     return lint.then(lintAgain).then(vFile => {
       expect(externalCache['https://github.com/davidtheclark']).toBe('alive');
@@ -164,9 +181,8 @@ describe('remark-lint-no-dead-urls', () => {
       Here is a [bad relative link](/wooorm/reeeemark).
     `);
 
-    expect(linkCheck).toHaveBeenCalledTimes(0);
-
     return lint.then(vFile => {
+      expect(linkCheck).toHaveBeenCalledTimes(0);
       expect(vFile.messages.length).toBe(0);
     });
   });
@@ -181,19 +197,21 @@ describe('remark-lint-no-dead-urls', () => {
       'https://www.github.com'
     );
 
-    expect(linkCheck).toHaveBeenCalledTimes(2);
-    expect(linkCheck.mock.calls[0][0]).toBe('/wooorm/rehype');
-    expect(linkCheck.mock.calls[0][1]).toEqual({
-      baseUrl: 'https://www.github.com'
-    });
-    expect(linkCheck.mock.calls[1][0]).toBe('/wooorm/reeeehype');
-    expect(linkCheck.mock.calls[1][1]).toEqual({
-      baseUrl: 'https://www.github.com'
-    });
+    process.nextTick(() => {
+      expect(linkCheck).toHaveBeenCalledTimes(2);
+      expect(linkCheck.mock.calls[0][0]).toBe('/wooorm/rehype');
+      expect(linkCheck.mock.calls[0][1]).toEqual({
+        baseUrl: 'https://www.github.com'
+      });
+      expect(linkCheck.mock.calls[1][0]).toBe('/wooorm/reeeehype');
+      expect(linkCheck.mock.calls[1][1]).toEqual({
+        baseUrl: 'https://www.github.com'
+      });
 
-    // Invoke the callbacks
-    linkCheck.mock.calls[0][2](null, { status: 'alive' });
-    linkCheck.mock.calls[1][2](null, { status: 'dead' });
+      // Invoke the callbacks
+      linkCheck.mock.calls[0][2](null, { status: 'alive' });
+      linkCheck.mock.calls[1][2](null, { status: 'dead' });
+    });
 
     return lint.then(vFile => {
       expect(vFile.messages.length).toBe(1);
@@ -219,19 +237,21 @@ describe('remark-lint-no-dead-urls', () => {
       { baseUrl: 'http://my.domain.com' }
     );
 
-    expect(linkCheck).toHaveBeenCalledTimes(2);
-    expect(linkCheck.mock.calls[0][0]).toBe('/pig-photos/384');
-    expect(linkCheck.mock.calls[0][1]).toEqual({
-      baseUrl: 'http://my.domain.com'
-    });
-    expect(linkCheck.mock.calls[1][0]).toBe('/oops/broken');
-    expect(linkCheck.mock.calls[1][1]).toEqual({
-      baseUrl: 'http://my.domain.com'
-    });
+    process.nextTick(() => {
+      expect(linkCheck).toHaveBeenCalledTimes(2);
+      expect(linkCheck.mock.calls[0][0]).toBe('/pig-photos/384');
+      expect(linkCheck.mock.calls[0][1]).toEqual({
+        baseUrl: 'http://my.domain.com'
+      });
+      expect(linkCheck.mock.calls[1][0]).toBe('/oops/broken');
+      expect(linkCheck.mock.calls[1][1]).toEqual({
+        baseUrl: 'http://my.domain.com'
+      });
 
-    // Invoke the callbacks
-    linkCheck.mock.calls[0][2](null, { status: 'alive' });
-    linkCheck.mock.calls[1][2](null, { status: 'dead' });
+      // Invoke the callbacks
+      linkCheck.mock.calls[0][2](null, { status: 'alive' });
+      linkCheck.mock.calls[1][2](null, { status: 'dead' });
+    });
 
     return lint.then(vFile => {
       expect(vFile.messages.length).toBe(1);
@@ -246,7 +266,36 @@ describe('remark-lint-no-dead-urls', () => {
       [Special schema.](flopper://a/b/c)
     `);
 
-    expect(linkCheck).toHaveBeenCalledTimes(0);
+    return lint.then(vFile => {
+      expect(linkCheck).toHaveBeenCalledTimes(0);
+      expect(vFile.messages.length).toBe(0);
+    });
+  });
+
+  test('warns if you are not online', () => {
+    isOnline.mockReturnValueOnce(Promise.resolve(false));
+
+    const lint = processMarkdown(dedent`
+      Here is a [bad link](https://github.com/davidtheclark/oops).
+    `);
+
+    return lint.then(vFile => {
+      expect(vFile.messages.length).toBe(1);
+      expect(vFile.messages[0].reason).toMatch('You are not online');
+    });
+  });
+
+  test('skipOffline: true', () => {
+    isOnline.mockReturnValueOnce(Promise.resolve(false));
+
+    const lint = processMarkdown(
+      dedent`
+      Here is a [bad link](https://github.com/davidtheclark/oops).
+    `,
+      {
+        skipOffline: true
+      }
+    );
 
     return lint.then(vFile => {
       expect(vFile.messages.length).toBe(0);

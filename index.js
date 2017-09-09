@@ -5,6 +5,7 @@ const rule = require('unified-lint-rule');
 const visit = require('unist-util-visit');
 const linkCheck = require('link-check');
 const isRelativeUrl = require('is-relative-url');
+const isOnline = require('is-online');
 
 const defaultCache = {};
 const pending = new Map();
@@ -78,4 +79,17 @@ function noDeadUrls(ast, file, options) {
   return Promise.all(promises);
 }
 
-module.exports = rule('remark-lint:no-dead-urls', noDeadUrls);
+function wrapper(ast, file, options) {
+  options = options || {};
+  return isOnline().then(online => {
+    if (!online) {
+      if (!options.skipOffline) {
+        file.message('You are not online and have not set skipOffline: true.');
+      }
+      return;
+    }
+    return noDeadUrls(ast, file, options);
+  });
+}
+
+module.exports = rule('remark-lint:no-dead-urls', wrapper);
