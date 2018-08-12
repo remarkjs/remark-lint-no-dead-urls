@@ -1,8 +1,8 @@
 # remark-lint-no-dead-urls
 
-[![Build Status](https://travis-ci.org/davidtheclark/remark-lint-no-dead-urls.svg?branch=master)](https://travis-ci.org/davidtheclark/remark-lint-no-dead-urls)
+> [remark-lint](https://github.com/wooorm/remark-lint) plugin to ensure that external URLs in your Markdown are alive.
 
-[remark-lint](https://github.com/wooorm/remark-lint) plugin to ensure that external URLs in your Markdown are alive.
+[![NPM](https://img.shields.io/npm/v/remark-lint-no-dead-urls.svg)](https://www.npmjs.com/package/remark-lint-no-dead-urls) [![Build Status](https://travis-ci.org/davidtheclark/remark-lint-no-dead-urls.svg?branch=master)](https://travis-ci.org/davidtheclark/remark-lint-no-dead-urls)
 
 Checks all of the following:
 
@@ -72,3 +72,7 @@ But the following `invalid.md` is **not** ok:
 ```md
 Here is a [bad relative link](wooorm/remark-dead-link)
 ```
+
+## License
+
+MIT © [David Clark](https://github.com/davidtheclark)
