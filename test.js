@@ -46,7 +46,9 @@ describe('remark-lint-no-dead-urls', () => {
       Here is a [bad link](https://github.com/unified/oops).
     `,
         {
-          retry: { retries: 0 }
+          gotOptions: {
+            retry: 0
+          }
         }
       );
 
@@ -87,7 +89,9 @@ describe('remark-lint-no-dead-urls', () => {
       [bad link]: /oops/broken
     `,
       {
-        baseUrl: 'http://my.domain.com'
+        gotOptions: {
+          baseUrl: 'http://my.domain.com'
+        }
       }
     );
 

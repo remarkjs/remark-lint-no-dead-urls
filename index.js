@@ -23,19 +23,21 @@ function noDeadUrls(ast, file, options) {
   visit(ast, 'definition', aggregate);
   visit(ast, 'image', aggregate);
 
-  return checkLinks(Object.keys(urlToNodes), options).then(results => {
-    for (const url in results) {
-      const result = results[url];
-      if (result.status !== 'dead') continue;
+  return checkLinks(Object.keys(urlToNodes), options.gotOptions).then(
+    results => {
+      Object.keys(results).forEach(url => {
+        const result = results[url];
+        if (result.status !== 'dead') return;
 
-      const nodes = urlToNodes[url];
-      if (!nodes) continue;
+        const nodes = urlToNodes[url];
+        if (!nodes) return;
 
-      for (const node of nodes) {
-        file.message(`Link to ${url} is dead`, node);
-      }
+        for (const node of nodes) {
+          file.message(`Link to ${url} is dead`, node);
+        }
+      });
     }
-  });
+  );
 }
 
 function wrapper(ast, file, options) {
