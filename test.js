@@ -130,7 +130,7 @@ describe('remark-lint-no-dead-urls', () => {
         'ftp://path/to/file.txt',
         'flopper://a/b/c'
       ]);
-      expect(checkLinks.mock.calls[0][1]).toEqual({});
+      expect(checkLinks.mock.calls[0][1]).toEqual(undefined);
       expect(vFile.messages.length).toBe(0);
     });
   });
