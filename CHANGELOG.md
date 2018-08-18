@@ -1,6 +1,6 @@
 # Changelog
 
-## HEAD
+## 0.4.0
 
 - Use [check-links](https://github.com/transitive-bullshit/check-links).
 - Replace `baseUrl` option with `gotOptions.baseUrl`.

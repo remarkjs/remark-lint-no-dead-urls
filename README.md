@@ -36,10 +36,10 @@ All options are optional. The options object may contain any of the following pr
   By default, if you are offline when you run the check you will receive a warning.
   If you want to let offline runs quietly pass, set this option to `true`.
 - **gotOptions** `{Object}` - Passed through [check-links] to [Got]. See documentation for [Got options](https://github.com/sindresorhus/got#options). With these options, you can customize retry logic, specify custom headers, and more. Here are some specific Got options that you might want to use:
-  - **gotOptions.baseUrl** `string` - Used as the base URL against which relative URLs are checked.
+  - **gotOptions.baseUrl** `{string}` - Used as the base URL against which relative URLs are checked.
     By default, relative URLs are ignored: you must provide this option to check them.
     For example, with `baseUrl: 'https://www.github.com'`, the relative URL `/davidtheclark` is checked as `https://www.github.com/davidtheclark`.
-  - **gotOptions.concurrency** `number` - Maximum number of URLs to check concurrently (default `8`).
+  - **gotOptions.concurrency** `{number}` - Maximum number of URLs to check concurrently (default `8`).
 
 ## Example
 
