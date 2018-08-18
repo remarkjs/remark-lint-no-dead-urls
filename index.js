@@ -8,7 +8,7 @@ const isOnline = require('is-online');
 function noDeadUrls(ast, file, options) {
   const urlToNodes = {};
 
-  const aggregate = node => {
+  const aggregate = (node) => {
     const url = node.url;
     if (!url) return;
 
@@ -24,8 +24,8 @@ function noDeadUrls(ast, file, options) {
   visit(ast, 'image', aggregate);
 
   return checkLinks(Object.keys(urlToNodes), options.gotOptions).then(
-    results => {
-      Object.keys(results).forEach(url => {
+    (results) => {
+      Object.keys(results).forEach((url) => {
         const result = results[url];
         if (result.status !== 'dead') return;
 
@@ -42,7 +42,7 @@ function noDeadUrls(ast, file, options) {
 
 function wrapper(ast, file, options) {
   options = options || {};
-  return isOnline().then(online => {
+  return isOnline().then((online) => {
     if (!online) {
       if (!options.skipOffline) {
         file.message('You are not online and have not set skipOffline: true.');

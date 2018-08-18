@@ -1,11 +1,5 @@
 'use strict';
 
-const remark = require('remark');
-const dedent = require('dedent');
-const checkLinks = require('check-links');
-const isOnline = require('is-online');
-const plugin = require('.');
-
 jest.mock('check-links', () => {
   return jest.fn(() => Promise.resolve({}));
 });
@@ -13,6 +7,12 @@ jest.mock('check-links', () => {
 jest.mock('is-online', () => {
   return jest.fn(() => Promise.resolve(true));
 });
+
+const remark = require('remark');
+const dedent = require('dedent');
+const checkLinks = require('check-links');
+const isOnline = require('is-online');
+const plugin = require('.');
 
 const processMarkdown = (md, opts) => {
   return remark()
@@ -28,7 +28,7 @@ describe('remark-lint-no-dead-urls', () => {
       No URLs in here.
     `);
 
-    return lint.then(vFile => {
+    return lint.then((vFile) => {
       expect(checkLinks).toHaveBeenCalledTimes(1);
       expect(vFile.messages.length).toBe(0);
     });
@@ -59,7 +59,7 @@ describe('remark-lint-no-dead-urls', () => {
         })
       );
 
-      return lint.then(vFile => {
+      return lint.then((vFile) => {
         expect(checkLinks).toHaveBeenCalledTimes(1);
         expect(checkLinks.mock.calls[0][0]).toEqual([
           'https://www.github.com',
@@ -102,7 +102,7 @@ describe('remark-lint-no-dead-urls', () => {
       })
     );
 
-    return lint.then(vFile => {
+    return lint.then((vFile) => {
       expect(checkLinks).toHaveBeenCalledTimes(1);
       expect(checkLinks.mock.calls[0][0]).toEqual([
         '/pig-photos/384',
@@ -123,7 +123,7 @@ describe('remark-lint-no-dead-urls', () => {
       [Special schema.](flopper://a/b/c)
     `);
 
-    return lint.then(vFile => {
+    return lint.then((vFile) => {
       expect(checkLinks).toHaveBeenCalledTimes(1);
       expect(checkLinks.mock.calls[0][0]).toEqual([
         'mailto:me@me.com',
@@ -142,7 +142,7 @@ describe('remark-lint-no-dead-urls', () => {
       Here is a [bad link](https://github.com/davidtheclark/oops).
     `);
 
-    return lint.then(vFile => {
+    return lint.then((vFile) => {
       expect(vFile.messages.length).toBe(1);
       expect(vFile.messages[0].reason).toMatch('You are not online');
     });
@@ -160,7 +160,7 @@ describe('remark-lint-no-dead-urls', () => {
       }
     );
 
-    return lint.then(vFile => {
+    return lint.then((vFile) => {
       expect(vFile.messages.length).toBe(0);
     });
   });
