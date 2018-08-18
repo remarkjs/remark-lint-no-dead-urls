@@ -3,6 +3,8 @@
 ## HEAD
 
 - Use [check-links](https://github.com/transitive-bullshit/check-links).
+- Replace `baseUrl` option with `gotOptions.baseUrl`.
+- Remove `cache` option. check-links does not expose similar cache configuration.
 - Drop Node 4 support.
 
 ## 0.3.0
