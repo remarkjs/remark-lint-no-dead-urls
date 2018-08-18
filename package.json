@@ -54,7 +54,7 @@
     "arrowParens": "always"
   },
   "engines": {
-    "node": ">=4"
+    "node": ">=6"
   },
   "lint-staged": {
     "*.js": [
