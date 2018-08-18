@@ -2,21 +2,21 @@
 
 const remark = require('remark');
 const dedent = require('dedent');
-const linkCheck = require('link-check');
+const checkLinks = require('check-links');
 const isOnline = require('is-online');
-const plugin = require('./index');
+const plugin = require('.');
 
-jest.mock('link-check', () => {
-  return jest.fn();
+jest.mock('check-links', () => {
+  return jest.fn(() => Promise.resolve({}));
 });
 
 jest.mock('is-online', () => {
   return jest.fn(() => Promise.resolve(true));
 });
 
-const processMarkdown = (md, baseUrl) => {
+const processMarkdown = (md, opts) => {
   return remark()
-    .use(plugin, baseUrl)
+    .use(plugin, opts)
     .process(md);
 };
 
@@ -28,198 +28,52 @@ describe('remark-lint-no-dead-urls', () => {
       No URLs in here.
     `);
 
-    expect(linkCheck).toHaveBeenCalledTimes(0);
     return lint.then(vFile => {
+      expect(checkLinks).toHaveBeenCalledTimes(1);
       expect(vFile.messages.length).toBe(0);
     });
   });
 
-  test('works', () => {
-    const lint = processMarkdown(dedent`
+  test(
+    'works',
+    () => {
+      const lint = processMarkdown(
+        dedent`
       # Title
 
       Here is a [good link](https://www.github.com).
 
       Here is a [bad link](https://github.com/unified/oops).
-    `);
-
-    process.nextTick(() => {
-      expect(linkCheck).toHaveBeenCalledTimes(2);
-      expect(linkCheck.mock.calls[0][0]).toBe('https://www.github.com');
-      expect(linkCheck.mock.calls[0][1]).toEqual({ baseUrl: undefined });
-      expect(linkCheck.mock.calls[1][0]).toBe(
-        'https://github.com/unified/oops'
-      );
-      expect(linkCheck.mock.calls[1][1]).toEqual({ baseUrl: undefined });
-
-      // Invoke the callbacks
-      linkCheck.mock.calls[0][2](null, { status: 'alive' });
-      linkCheck.mock.calls[1][2](null, { status: 'dead' });
-    });
-
-    return lint.then(vFile => {
-      expect(vFile.messages.length).toBe(1);
-      expect(vFile.messages[0].reason).toBe(
-        'Link to https://github.com/unified/oops is dead'
-      );
-    });
-  });
-
-  test('caches internally', () => {
-    const lint = processMarkdown(dedent`
-      # Title
-
-      Here is a [good link](https://github.com/davidtheclark).
-      And here it is [again](https://github.com/davidtheclark).
-
-      Here is a [bad link](https://github.com/davidtheclark/oops).
-      And here it is [again](https://github.com/davidtheclark/oops).
-    `);
-
-    const lintAgain = processMarkdown(dedent`
-      # Title
-
-      Here is a [good link](https://github.com/davidtheclark).
-      And here it is [again](https://github.com/davidtheclark).
-
-      Here is a [bad link](https://github.com/davidtheclark/oops).
-      And here it is [again](https://github.com/davidtheclark/oops).
-    `);
-
-    process.nextTick(() => {
-      expect(linkCheck).toHaveBeenCalledTimes(2);
-      expect(linkCheck.mock.calls[0][0]).toBe(
-        'https://github.com/davidtheclark'
-      );
-      expect(linkCheck.mock.calls[1][0]).toBe(
-        'https://github.com/davidtheclark/oops'
-      );
-
-      // Invoke the callbacks
-      linkCheck.mock.calls[0][2](null, { status: 'alive' });
-      linkCheck.mock.calls[1][2](null, { status: 'dead' });
-    });
-
-    return lint.then(lintAgain).then(vFile => {
-      expect(vFile.messages.length).toBe(2);
-      expect(vFile.messages[0].reason).toBe(
-        'Link to https://github.com/davidtheclark/oops is dead'
-      );
-      expect(vFile.messages[1].reason).toBe(
-        'Link to https://github.com/davidtheclark/oops is dead'
-      );
-    });
-  });
-
-  test('caches externally', () => {
-    const externalCache = {};
-
-    const lint = processMarkdown(
-      dedent`
-      # Title
-
-      Here is a [good link](https://github.com/davidtheclark).
-      And here it is [again](https://github.com/davidtheclark).
-
-      Here is a [bad link](https://github.com/davidtheclark/oops).
-      And here it is [again](https://github.com/davidtheclark/oops).
     `,
-      { cache: externalCache }
-    );
-
-    const lintAgain = processMarkdown(
-      dedent`
-      # Title
-
-      Here is a [good link](https://github.com/davidtheclark).
-      And here it is [again](https://github.com/davidtheclark).
-
-      Here is a [bad link](https://github.com/davidtheclark/oops).
-      And here it is [again](https://github.com/davidtheclark/oops).
-    `,
-      { cache: externalCache }
-    );
-
-    process.nextTick(() => {
-      expect(linkCheck).toHaveBeenCalledTimes(2);
-      expect(linkCheck.mock.calls[0][0]).toBe(
-        'https://github.com/davidtheclark'
-      );
-      expect(linkCheck.mock.calls[1][0]).toBe(
-        'https://github.com/davidtheclark/oops'
-      );
-      expect(externalCache['https://github.com/davidtheclark']).toBe(undefined);
-      expect(externalCache['https://github.com/davidtheclark/oops']).toBe(
-        undefined
+        {
+          gotOptions: {
+            retry: 0
+          }
+        }
       );
 
-      // Invoke the callbacks
-      linkCheck.mock.calls[0][2](null, { status: 'alive' });
-      linkCheck.mock.calls[1][2](null, { status: 'dead' });
-    });
-
-    return lint.then(lintAgain).then(vFile => {
-      expect(externalCache['https://github.com/davidtheclark']).toBe('alive');
-      expect(externalCache['https://github.com/davidtheclark/oops']).toBe(
-        'dead'
+      checkLinks.mockReturnValue(
+        Promise.resolve({
+          'https://www.github.com': { status: 'alive', statusCode: 200 },
+          'https://github.com/unified/oops': { status: 'dead', statusCode: 404 }
+        })
       );
 
-      expect(vFile.messages.length).toBe(2);
-      expect(vFile.messages[0].reason).toBe(
-        'Link to https://github.com/davidtheclark/oops is dead'
-      );
-      expect(vFile.messages[1].reason).toBe(
-        'Link to https://github.com/davidtheclark/oops is dead'
-      );
-    });
-  });
+      return lint.then(vFile => {
+        expect(checkLinks).toHaveBeenCalledTimes(1);
+        expect(checkLinks.mock.calls[0][0]).toEqual([
+          'https://www.github.com',
+          'https://github.com/unified/oops'
+        ]);
 
-  test('skips relative URL without baseUrl', () => {
-    const lint = processMarkdown(dedent`
-      Here is a [good relative link](/wooorm/remark).
-
-      Here is a [bad relative link](/wooorm/reeeemark).
-    `);
-
-    return lint.then(vFile => {
-      expect(linkCheck).toHaveBeenCalledTimes(0);
-      expect(vFile.messages.length).toBe(0);
-    });
-  });
-
-  test('checks relative URL with baseUrl (string option)', () => {
-    const lint = processMarkdown(
-      dedent`
-      Here is a [good relative link](/wooorm/rehype).
-
-      Here is a [bad relative link](/wooorm/reeeehype).
-    `,
-      'https://www.github.com'
-    );
-
-    process.nextTick(() => {
-      expect(linkCheck).toHaveBeenCalledTimes(2);
-      expect(linkCheck.mock.calls[0][0]).toBe('/wooorm/rehype');
-      expect(linkCheck.mock.calls[0][1]).toEqual({
-        baseUrl: 'https://www.github.com'
+        expect(vFile.messages.length).toBe(1);
+        expect(vFile.messages[0].reason).toBe(
+          'Link to https://github.com/unified/oops is dead'
+        );
       });
-      expect(linkCheck.mock.calls[1][0]).toBe('/wooorm/reeeehype');
-      expect(linkCheck.mock.calls[1][1]).toEqual({
-        baseUrl: 'https://www.github.com'
-      });
-
-      // Invoke the callbacks
-      linkCheck.mock.calls[0][2](null, { status: 'alive' });
-      linkCheck.mock.calls[1][2](null, { status: 'dead' });
-    });
-
-    return lint.then(vFile => {
-      expect(vFile.messages.length).toBe(1);
-      expect(vFile.messages[0].reason).toBe(
-        'Link to /wooorm/reeeehype is dead'
-      );
-    });
-  });
+    },
+    15000
+  );
 
   test('works with definitions and images', () => {
     const lint = processMarkdown(
@@ -234,32 +88,35 @@ describe('remark-lint-no-dead-urls', () => {
 
       [bad link]: /oops/broken
     `,
-      { baseUrl: 'http://my.domain.com' }
+      {
+        gotOptions: {
+          baseUrl: 'http://my.domain.com'
+        }
+      }
     );
 
-    process.nextTick(() => {
-      expect(linkCheck).toHaveBeenCalledTimes(2);
-      expect(linkCheck.mock.calls[0][0]).toBe('/pig-photos/384');
-      expect(linkCheck.mock.calls[0][1]).toEqual({
-        baseUrl: 'http://my.domain.com'
-      });
-      expect(linkCheck.mock.calls[1][0]).toBe('/oops/broken');
-      expect(linkCheck.mock.calls[1][1]).toEqual({
-        baseUrl: 'http://my.domain.com'
-      });
-
-      // Invoke the callbacks
-      linkCheck.mock.calls[0][2](null, { status: 'alive' });
-      linkCheck.mock.calls[1][2](null, { status: 'dead' });
-    });
+    checkLinks.mockReturnValue(
+      Promise.resolve({
+        '/pig-photos/384': { status: 'alive', statusCode: 200 },
+        '/oops/broken': { status: 'dead', statusCode: 404 }
+      })
+    );
 
     return lint.then(vFile => {
+      expect(checkLinks).toHaveBeenCalledTimes(1);
+      expect(checkLinks.mock.calls[0][0]).toEqual([
+        '/pig-photos/384',
+        '/oops/broken'
+      ]);
+      expect(checkLinks.mock.calls[0][1]).toEqual({
+        baseUrl: 'http://my.domain.com'
+      });
       expect(vFile.messages.length).toBe(1);
       expect(vFile.messages[0].reason).toBe('Link to /oops/broken is dead');
     });
   });
 
-  test('skips URLs with output http: or https: protocols', () => {
+  test('skips URLs with unsupported protocols', () => {
     const lint = processMarkdown(dedent`
       [Send me an email.](mailto:me@me.com)
       [Look at this file.](ftp://path/to/file.txt)
@@ -267,7 +124,13 @@ describe('remark-lint-no-dead-urls', () => {
     `);
 
     return lint.then(vFile => {
-      expect(linkCheck).toHaveBeenCalledTimes(0);
+      expect(checkLinks).toHaveBeenCalledTimes(1);
+      expect(checkLinks.mock.calls[0][0]).toEqual([
+        'mailto:me@me.com',
+        'ftp://path/to/file.txt',
+        'flopper://a/b/c'
+      ]);
+      expect(checkLinks.mock.calls[0][1]).toEqual(undefined);
       expect(vFile.messages.length).toBe(0);
     });
   });

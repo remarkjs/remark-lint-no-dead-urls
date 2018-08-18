@@ -1,82 +1,43 @@
 'use strict';
 
-const url = require('url');
 const rule = require('unified-lint-rule');
 const visit = require('unist-util-visit');
-const linkCheck = require('link-check');
-const isRelativeUrl = require('is-relative-url');
+const checkLinks = require('check-links');
 const isOnline = require('is-online');
 
-const defaultCache = {};
-const pending = new Map();
-const protocolWhitelist = new Set(['https:', 'http:']);
-
 function noDeadUrls(ast, file, options) {
-  let baseUrl;
-  if (typeof options === 'string') {
-    baseUrl = options;
-    options = {};
-  } else {
-    options = options || {};
-    baseUrl = options.baseUrl;
-  }
-  const cache = options.cache || defaultCache;
+  const urlToNodes = {};
 
-  const warn = node => {
-    file.message(`Link to ${node.url} is dead`, node);
+  const aggregate = node => {
+    const url = node.url;
+    if (!url) return;
+
+    if (!urlToNodes[url]) {
+      urlToNodes[url] = [];
+    }
+
+    urlToNodes[url].push(node);
   };
 
-  const skipUrl = subjectUrl => {
-    if (isRelativeUrl(subjectUrl)) {
-      return !baseUrl;
-    } else {
-      const parsedUrl = url.parse(subjectUrl);
-      return !protocolWhitelist.has(parsedUrl.protocol);
-    }
-  };
+  visit(ast, 'link', aggregate);
+  visit(ast, 'definition', aggregate);
+  visit(ast, 'image', aggregate);
 
-  // Ensure there's at least one Promise to resolve
-  const promises = [Promise.resolve()];
-  const validate = node => {
-    let subjectUrl = node.url;
-    if (!subjectUrl) return;
+  return checkLinks(Object.keys(urlToNodes), options.gotOptions).then(
+    results => {
+      Object.keys(results).forEach(url => {
+        const result = results[url];
+        if (result.status !== 'dead') return;
 
-    if (skipUrl(subjectUrl)) return;
+        const nodes = urlToNodes[url];
+        if (!nodes) return;
 
-    if (cache[subjectUrl] !== undefined) {
-      if (cache[subjectUrl] !== 'alive') warn(node);
-      return;
-    }
-
-    if (pending.has(subjectUrl)) {
-      promises.push(
-        pending.get(subjectUrl).then(status => {
-          if (status !== 'alive') warn(node);
-        })
-      );
-      return;
-    }
-
-    const checkUrl = new Promise((resolve, reject) => {
-      linkCheck(subjectUrl, { baseUrl }, (error, result) => {
-        if (error) return reject(error);
-        if (result.status !== 'alive') {
-          warn(node);
+        for (const node of nodes) {
+          file.message(`Link to ${url} is dead`, node);
         }
-        cache[subjectUrl] = result.status;
-        pending.delete(subjectUrl);
-        resolve(result.status);
       });
-    });
-    pending.set(subjectUrl, checkUrl);
-    promises.push(checkUrl);
-  };
-
-  visit(ast, 'link', validate);
-  visit(ast, 'definition', validate);
-  visit(ast, 'image', validate);
-
-  return Promise.all(promises);
+    }
+  );
 }
 
 function wrapper(ast, file, options) {

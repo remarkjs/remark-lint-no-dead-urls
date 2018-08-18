@@ -1,8 +1,9 @@
 # remark-lint-no-dead-urls
 
-[![Build Status](https://travis-ci.org/davidtheclark/remark-lint-no-dead-urls.svg?branch=master)](https://travis-ci.org/davidtheclark/remark-lint-no-dead-urls)
+> [remark-lint](https://github.com/wooorm/remark-lint) plugin to ensure that external URLs in your Markdown are alive.
 
-[remark-lint](https://github.com/wooorm/remark-lint) plugin to ensure that external URLs in your Markdown are alive.
+[![NPM](https://img.shields.io/npm/v/remark-lint-no-dead-urls.svg)](https://www.npmjs.com/package/remark-lint-no-dead-urls) [![Build Status](https://travis-ci.org/davidtheclark/remark-lint-no-dead-urls.svg?branch=master)](https://travis-ci.org/davidtheclark/remark-lint-no-dead-urls)
+
 Checks all of the following:
 
 ```md
@@ -15,25 +16,22 @@ Checks definitions: see the [walrus].
 [walrus]: /path/to/walrus.jpg
 ```
 
-Uses [link-check](https://github.com/tcort/link-check) to check URLs against the real internet.
+Uses [check-links](https://github.com/transitive-bullshit/check-links) to check URLs for liveness (requires an internet connection).
 
-Options: `Object` or `string`. Optional.
+Options: `Object`. Optional. May contain any of the following properties:
 
-An options `Object` can have the following properties:
-
-- **baseUrl** `string` - Used as the base URL against which relative URLs are checked.
-  For example, with `baseUrl: 'https://www.github.com'`, the relative URL `/davidtheclark` is checked as `https://www.github.com/davidtheclark`.
-  **By default, relative URLs are ignored: you must provide this option to check them.**
-- **cache** `Object` - By default, URLs are cached internally to avoid repeated checks.
-  If you want to manage the cache yourself (maybe even write it to disk between runs), you can provide a cache `Object` that will be read from and written to.
-  The cache will be populated with properties whose keys are URLs are values are `'alive'` or `'dead'`.
 - **skipOffline** `boolean` - Default: `false`.
   By default, if you are offline when you run the check you will receive a warning.
   If you want to let offline runs quietly pass, set this option to `true`.
+- **gotOptions** `object` - Passed to `check-links` and `got`.
+- **gotOptions.concurrency** `number` - Maximum number of urls to resolve concurrently (optional, default `8`)
+- **gotOptions.baseUrl** `string` - Used as the base URL against which relative URLs are checked.
+  For example, with `baseUrl: 'https://www.github.com'`, the relative URL `/davidtheclark` is checked as `https://www.github.com/davidtheclark`.
+  **By default, relative URLs are ignored: you must provide this option to check them.**
 
-An options `string` is interpreted as `baseUrl` (above).
+Any `gotOptions` will be passed to [got](https://github.com/sindresorhus/got#options), such as customizing retry logic, setting a `baseUrl`, specifying a custom `cache`, custom headers, etc.
 
-**Does not check absolute URLs with protocols other than `http:` and `https:`.**
+**Ignores absolute URLs with protocols other than `http:` and `https:`.**
 
 ## Example
 
@@ -54,7 +52,7 @@ Here is a [bad link](https://www.github.com/wooom/remark-dead-link)
 ```
 
 **By default, relative links are ignored.**
-To check relative links, you must provide a base URL string as an option.
+To check relative links, you must provide `gotOptions.baseUrl` as an option.
 
 When nothing is passed, the following `valid.md` is ok:
 
