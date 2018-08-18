@@ -47,7 +47,7 @@
   "jest": {
     "testEnvironment": "node",
     "clearMocks": true,
-    "transorm": {}
+    "transform": {}
   },
   "prettier": {
     "singleQuote": true,
