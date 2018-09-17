@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1
+
+- Bump check-links dependency.
+
 ## 0.4.0
 
 - Use [check-links](https://github.com/transitive-bullshit/check-links).
