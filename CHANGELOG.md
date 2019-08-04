@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.0
+
+- Drop Node 6 support.
+- Update dependencies to remove deprecation notice about `OutgoingMessage.prototype._headers`.
+
 ## 0.4.1
 
 - Bump check-links dependency.
