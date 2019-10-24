@@ -179,7 +179,6 @@ describe('remark-lint-no-dead-urls', () => {
     test('localhost', () => {
       const lint = processMarkdown(
         dedent`
-							- [localhost:3000](localhost:3000)
 							- [http://localhost](http://localhost)
 							- [http://localhost/alex/test](http://localhost/alex/test)
 							- [http://localhost:3000](http://localhost:3000)
