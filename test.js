@@ -44,6 +44,8 @@ describe('remark-lint-no-dead-urls', () => {
       Here is a [good link](https://www.github.com).
 
       Here is a [bad link](https://github.com/unified/oops).
+
+      Here is a [local link](http://localhost:3000).
     `,
         {
           gotOptions: {
@@ -55,7 +57,11 @@ describe('remark-lint-no-dead-urls', () => {
       checkLinks.mockReturnValue(
         Promise.resolve({
           'https://www.github.com': { status: 'alive', statusCode: 200 },
-          'https://github.com/unified/oops': { status: 'dead', statusCode: 404 }
+          'https://github.com/unified/oops': {
+            status: 'dead',
+            statusCode: 404
+          },
+          'http://localhost:3000': { status: 'dead', statusCode: 404 }
         })
       );
 
@@ -63,12 +69,16 @@ describe('remark-lint-no-dead-urls', () => {
         expect(checkLinks).toHaveBeenCalledTimes(1);
         expect(checkLinks.mock.calls[0][0]).toEqual([
           'https://www.github.com',
-          'https://github.com/unified/oops'
+          'https://github.com/unified/oops',
+          'http://localhost:3000'
         ]);
 
-        expect(vFile.messages.length).toBe(1);
+        expect(vFile.messages.length).toBe(2);
         expect(vFile.messages[0].reason).toBe(
           'Link to https://github.com/unified/oops is dead'
+        );
+        expect(vFile.messages[1].reason).toBe(
+          'Link to http://localhost:3000 is dead'
         );
       });
     },
@@ -162,6 +172,53 @@ describe('remark-lint-no-dead-urls', () => {
 
     return lint.then((vFile) => {
       expect(vFile.messages.length).toBe(0);
+    });
+  });
+
+  describe('skipLocalhost: true', () => {
+    test('localhost', () => {
+      const lint = processMarkdown(
+        dedent`
+							- [localhost:3000](localhost:3000)
+							- [http://localhost](http://localhost)
+							- [http://localhost/alex/test](http://localhost/alex/test)
+							- [http://localhost:3000](http://localhost:3000)
+							- [http://localhost:3000/alex/test](http://localhost:3000/alex/test)
+							- [https://localhost](http://localhost)
+							- [https://localhost/alex/test](http://localhost/alex/test)
+							- [https://localhost:3000](http://localhost:3000)
+							- [https://localhost:3000/alex/test](http://localhost:3000/alex/test)
+						`,
+        {
+          skipLocalhost: true
+        }
+      );
+
+      return lint.then((vFile) => {
+        expect(vFile.messages.length).toBe(0);
+      });
+    });
+
+    test('local IP 127.0.0.1', () => {
+      const lint = processMarkdown(
+        dedent`
+							- [http://127.0.0.1](http://127.0.0.1)
+							- [http://127.0.0.1:3000](http://127.0.0.1:3000)
+							- [http://127.0.0.1/alex/test](http://127.0.0.1)
+							- [http://127.0.0.1:3000/alex/test](http://127.0.0.1:3000)
+							- [https://127.0.0.1](http://127.0.0.1)
+							- [https://127.0.0.1:3000](http://127.0.0.1:3000)
+							- [https://127.0.0.1/alex/test](http://127.0.0.1)
+							- [https://127.0.0.1:3000/alex/test](http://127.0.0.1:3000)
+						`,
+        {
+          skipLocalhost: true
+        }
+      );
+
+      return lint.then((vFile) => {
+        expect(vFile.messages.length).toBe(0);
+      });
     });
   });
 });

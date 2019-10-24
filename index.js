@@ -11,6 +11,11 @@ function noDeadUrls(ast, file, options) {
   const aggregate = (node) => {
     const url = node.url;
     if (!url) return;
+    if (
+      options.skipLocalhost &&
+      /(https?:\/\/)(localhost|127\.0\.0\.1)(:\d+)?/.test(url)
+    )
+      return;
 
     if (!urlToNodes[url]) {
       urlToNodes[url] = [];
