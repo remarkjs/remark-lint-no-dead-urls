@@ -36,8 +36,8 @@ All options are optional. The options object may contain any of the following pr
   By default, if you are offline when you run the check you will receive a warning.
   If you want to let offline runs quietly pass, set this option to `true`.
 - **skipLocalhost** `{boolean}` - Default: `false`.
-  By default, all local links testing to a live status, and if project not running locally you'll receive a warning.
-  If you want to skip localhost links (http://localhost, http://127.0.0.1), set this option to `true`.
+  By default, `localhost` links are treated the same as other links, so if your project is not running locally you'll receive a warning.
+  If you want to ignore `localhost` links (e.g. `http://localhost/*`, `http://127.0.0.1/*`), set this option to `true`.
 - **gotOptions** `{Object}` - Passed through [check-links] to [Got]. See documentation for [Got options](https://github.com/sindresorhus/got#options). With these options, you can customize retry logic, specify custom headers, and more. Here are some specific Got options that you might want to use:
   - **gotOptions.baseUrl** `{string}` - Used as the base URL against which relative URLs are checked.
     By default, relative URLs are ignored: you must provide this option to check them.

@@ -13,7 +13,7 @@ function noDeadUrls(ast, file, options) {
     if (!url) return;
     if (
       options.skipLocalhost &&
-      /(https?:\/\/)(localhost|127\.0\.0\.1)(:\d+)?/.test(url)
+      /^(https?:\/\/)(localhost|127\.0\.0\.1)(:\d+)?/.test(url)
     )
       return;
 
