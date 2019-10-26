@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.0
+
+- Add `skipLocalhost` option.
+
 ## 0.5.0
 
 - Drop Node 6 support.

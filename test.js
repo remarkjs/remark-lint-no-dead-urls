@@ -179,15 +179,15 @@ describe('remark-lint-no-dead-urls', () => {
     test('localhost', () => {
       const lint = processMarkdown(
         dedent`
-              - [http://localhost](http://localhost)
-              - [http://localhost/alex/test](http://localhost/alex/test)
-              - [http://localhost:3000](http://localhost:3000)
-              - [http://localhost:3000/alex/test](http://localhost:3000/alex/test)
-              - [https://localhost](http://localhost)
-              - [https://localhost/alex/test](http://localhost/alex/test)
-              - [https://localhost:3000](http://localhost:3000)
-              - [https://localhost:3000/alex/test](http://localhost:3000/alex/test)
-            `,
+          - [http://localhost](http://localhost)
+          - [http://localhost/alex/test](http://localhost/alex/test)
+          - [http://localhost:3000](http://localhost:3000)
+          - [http://localhost:3000/alex/test](http://localhost:3000/alex/test)
+          - [https://localhost](http://localhost)
+          - [https://localhost/alex/test](http://localhost/alex/test)
+          - [https://localhost:3000](http://localhost:3000)
+          - [https://localhost:3000/alex/test](http://localhost:3000/alex/test)
+        `,
         {
           skipLocalhost: true
         }
@@ -201,15 +201,15 @@ describe('remark-lint-no-dead-urls', () => {
     test('local IP 127.0.0.1', () => {
       const lint = processMarkdown(
         dedent`
-              - [http://127.0.0.1](http://127.0.0.1)
-              - [http://127.0.0.1:3000](http://127.0.0.1:3000)
-              - [http://127.0.0.1/alex/test](http://127.0.0.1)
-              - [http://127.0.0.1:3000/alex/test](http://127.0.0.1:3000)
-              - [https://127.0.0.1](http://127.0.0.1)
-              - [https://127.0.0.1:3000](http://127.0.0.1:3000)
-              - [https://127.0.0.1/alex/test](http://127.0.0.1)
-              - [https://127.0.0.1:3000/alex/test](http://127.0.0.1:3000)
-            `,
+          - [http://127.0.0.1](http://127.0.0.1)
+          - [http://127.0.0.1:3000](http://127.0.0.1:3000)
+          - [http://127.0.0.1/alex/test](http://127.0.0.1)
+          - [http://127.0.0.1:3000/alex/test](http://127.0.0.1:3000)
+          - [https://127.0.0.1](http://127.0.0.1)
+          - [https://127.0.0.1:3000](http://127.0.0.1:3000)
+          - [https://127.0.0.1/alex/test](http://127.0.0.1)
+          - [https://127.0.0.1:3000/alex/test](http://127.0.0.1:3000)
+        `,
         {
           skipLocalhost: true
         }
