@@ -1,6 +1,6 @@
 {
   "name": "remark-lint-no-dead-urls",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Ensure that URLs in your Markdown are alive",
   "main": "index.js",
   "scripts": {
