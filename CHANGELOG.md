@@ -1,6 +1,6 @@
 # Changelog
 
-## HEAD
+## 1.0.1
 
 - Bump patch versions of dependencies.
 
