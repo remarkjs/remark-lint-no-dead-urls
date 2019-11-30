@@ -34,11 +34,9 @@ describe('remark-lint-no-dead-urls', () => {
     });
   });
 
-  test(
-    'works',
-    () => {
-      const lint = processMarkdown(
-        dedent`
+  test('works', () => {
+    const lint = processMarkdown(
+      dedent`
       # Title
 
       Here is a [good link](https://www.github.com).
@@ -47,43 +45,41 @@ describe('remark-lint-no-dead-urls', () => {
 
       Here is a [local link](http://localhost:3000).
     `,
-        {
-          gotOptions: {
-            retry: 0
-          }
+      {
+        gotOptions: {
+          retry: 0
         }
+      }
+    );
+
+    checkLinks.mockReturnValue(
+      Promise.resolve({
+        'https://www.github.com': { status: 'alive', statusCode: 200 },
+        'https://github.com/unified/oops': {
+          status: 'dead',
+          statusCode: 404
+        },
+        'http://localhost:3000': { status: 'dead', statusCode: 404 }
+      })
+    );
+
+    return lint.then((vFile) => {
+      expect(checkLinks).toHaveBeenCalledTimes(1);
+      expect(checkLinks.mock.calls[0][0]).toEqual([
+        'https://www.github.com',
+        'https://github.com/unified/oops',
+        'http://localhost:3000'
+      ]);
+
+      expect(vFile.messages.length).toBe(2);
+      expect(vFile.messages[0].reason).toBe(
+        'Link to https://github.com/unified/oops is dead'
       );
-
-      checkLinks.mockReturnValue(
-        Promise.resolve({
-          'https://www.github.com': { status: 'alive', statusCode: 200 },
-          'https://github.com/unified/oops': {
-            status: 'dead',
-            statusCode: 404
-          },
-          'http://localhost:3000': { status: 'dead', statusCode: 404 }
-        })
+      expect(vFile.messages[1].reason).toBe(
+        'Link to http://localhost:3000 is dead'
       );
-
-      return lint.then((vFile) => {
-        expect(checkLinks).toHaveBeenCalledTimes(1);
-        expect(checkLinks.mock.calls[0][0]).toEqual([
-          'https://www.github.com',
-          'https://github.com/unified/oops',
-          'http://localhost:3000'
-        ]);
-
-        expect(vFile.messages.length).toBe(2);
-        expect(vFile.messages[0].reason).toBe(
-          'Link to https://github.com/unified/oops is dead'
-        );
-        expect(vFile.messages[1].reason).toBe(
-          'Link to http://localhost:3000 is dead'
-        );
-      });
-    },
-    15000
-  );
+    });
+  }, 15000);
 
   test('works with definitions and images', () => {
     const lint = processMarkdown(

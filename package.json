@@ -29,20 +29,20 @@
   },
   "homepage": "https://github.com/davidtheclark/remark-lint-no-dead-urls#readme",
   "dependencies": {
-    "check-links": "^1.1.7",
-    "is-online": "^8.2.0",
+    "check-links": "^1.1.8",
+    "is-online": "^8.2.1",
     "unified-lint-rule": "^1.0.4",
-    "unist-util-visit": "^2.0.0"
+    "unist-util-visit": "^2.0.1"
   },
   "devDependencies": {
     "dedent": "^0.7.0",
-    "eslint": "^4.1.1",
-    "eslint-plugin-node": "^5.1.0",
-    "husky": "^0.14.2",
-    "jest": "^23.5.0",
-    "lint-staged": "^4.0.0",
-    "prettier": "1.14.2",
-    "remark": "^8.0.0"
+    "eslint": "^6.7.1",
+    "eslint-plugin-node": "^10.0.0",
+    "husky": "^3.1.0",
+    "jest": "^24.9.0",
+    "lint-staged": "^9.5.0",
+    "prettier": "1.19.1",
+    "remark": "^11.0.2"
   },
   "jest": {
     "testEnvironment": "node",

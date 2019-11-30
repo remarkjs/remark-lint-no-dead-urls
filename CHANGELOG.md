@@ -1,5 +1,9 @@
 # Changelog
 
+## HEAD
+
+- Bump patch versions of dependencies.
+
 ## 1.0.0
 
 - Add `skipLocalhost` option.
