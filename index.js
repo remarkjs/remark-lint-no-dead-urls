@@ -24,9 +24,7 @@ function noDeadUrls(ast, file, options) {
     urlToNodes[url].push(node);
   };
 
-  visit(ast, 'link', aggregate);
-  visit(ast, 'definition', aggregate);
-  visit(ast, 'image', aggregate);
+  visit(ast, ['link', 'image', 'definition'], aggregate);
 
   return checkLinks(Object.keys(urlToNodes), options.gotOptions).then(
     (results) => {
