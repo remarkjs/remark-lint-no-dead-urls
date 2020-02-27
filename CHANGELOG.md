@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2
+
+- Walk the AST fewer times.
+
 ## 1.0.1
 
 - Bump patch versions of dependencies.
