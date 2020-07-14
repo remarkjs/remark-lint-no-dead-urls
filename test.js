@@ -216,4 +216,19 @@ describe('remark-lint-no-dead-urls', () => {
       });
     });
   });
+
+  test.each([
+    '[Ignore this](http://www.url-to-ignore.com)',
+    '[Ignore this](http://www.url-to-ignore.com/somePath)',
+    '[Ignore this](http://www.url-to-ignore.com/somePath?withQuery=wow)',
+    '[its complicated](http://url-to-ignore.com/somePath/maybe)'
+  ])('skipUrlPatterns for content: %s', (markdownContent) => {
+    const lint = processMarkdown(markdownContent, {
+      skipUrlPatterns: [/^http:\/\/(.*)url-to-ignore\.com/]
+    });
+
+    return lint.then((vFile) => {
+      expect(vFile.messages.length).toBe(0);
+    });
+  });
 });

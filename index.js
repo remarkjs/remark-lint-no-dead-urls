@@ -14,8 +14,17 @@ function noDeadUrls(ast, file, options) {
     if (
       options.skipLocalhost &&
       /^(https?:\/\/)(localhost|127\.0\.0\.1)(:\d+)?/.test(url)
-    )
+    ) {
       return;
+    }
+    if (
+      options.skipUrlPatterns &&
+      options.skipUrlPatterns.some((skipPattern) =>
+        new RegExp(skipPattern).test(url)
+      )
+    ) {
+      return;
+    }
 
     if (!urlToNodes[url]) {
       urlToNodes[url] = [];
