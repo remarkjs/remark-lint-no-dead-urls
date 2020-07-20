@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0
+
+- Add `skipUrlPatterns` option.
+
 ## 1.0.2
 
 - Walk the AST fewer times.
