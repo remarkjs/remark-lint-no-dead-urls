@@ -39,7 +39,7 @@ All options are optional. The options object may contain any of the following pr
   By default, `localhost` links are treated the same as other links, so if your project is not running locally you'll receive a warning.
   If you want to ignore `localhost` links (e.g. `http://localhost/*`, `http://127.0.0.1/*`), set this option to `true`.
 - **skipUrlPatterns** `{Array}` - Array of `String` | `RegExp`.
-  Useful for use cases where you need to skip some URLs (e.g. `[/^http:\/\/(.*)url-to-ignore\.com/]`)
+ A list of patterns for URLs that should be skipped. Each URL will be tested against each pattern, and will be ignored if `new RegExp(pattern).test(url) === true`. For example, with `skipUrls: [/^http:\/\/(.*)url-to-ignore\.com/, 'https://never-check.com']`, links with the URLs `http://www.url-to-ignore.com/foo` and `https://never-check.com/foo/bar` will not be checked.
 - **gotOptions** `{Object}` - Passed through [check-links] to [Got]. See documentation for [Got options](https://github.com/sindresorhus/got#options). With these options, you can customize retry logic, specify custom headers, and more. Here are some specific Got options that you might want to use:
   - **gotOptions.baseUrl** `{string}` - Used as the base URL against which relative URLs are checked.
     By default, relative URLs are ignored: you must provide this option to check them.
