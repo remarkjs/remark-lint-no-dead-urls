@@ -7,6 +7,9 @@ const isOnline = require('is-online');
 
 function noDeadUrls(ast, file, options) {
   const urlToNodes = {};
+  const customizeErrorMessageFn = options.customizeErrorMessage && typeof options.customizeErrorMessage === 'function'
+    ? options.customizeErrorMessage
+    : null;
 
   const aggregate = (node) => {
     const url = node.url;
@@ -45,8 +48,8 @@ function noDeadUrls(ast, file, options) {
         if (!nodes) return;
 
         for (const node of nodes) {
-          const errorMessage = options.customizeErrorMessage
-            ? options.customizeErrorMessage(url)
+          const errorMessage = customizeErrorMessageFn
+            ? customizeErrorMessageFn(url)
             : `Link to ${url} is dead`;
           file.message(errorMessage, node);
         }
