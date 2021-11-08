@@ -45,7 +45,7 @@ All options are optional. The options object may contain any of the following pr
     By default, relative URLs are ignored: you must provide this option to check them.
     For example, with `baseUrl: 'https://www.github.com'`, the relative URL `/davidtheclark` is checked as `https://www.github.com/davidtheclark`.
   - **gotOptions.concurrency** `{number}` - Maximum number of URLs to check concurrently (default `8`).
-- **customizeErrorMessage** `{function}` - function to customize the error message for an `url`
+- **customizeErrorMessage** `{function}` - function to customize the error message for a dead `url`
   - **url** `{string}` - url string for which to customize the error message.
 
 ## Example
