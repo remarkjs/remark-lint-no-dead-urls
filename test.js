@@ -171,6 +171,44 @@ describe('remark-lint-no-dead-urls', () => {
     });
   });
 
+  test('test customizeErrorMesssage function for a dead url', () => {
+    const lint = processMarkdown(
+      dedent`
+      # Title
+
+      Here is a [bad link] to customize the error.
+
+      [bad link]: /oops/customize-broken-link-err
+
+      Here is a [dead link](https://github.com/unified/oops)
+    `,
+      {
+        customizeErrorMessage: function(url) {
+          return `Link to ${url} is either dead or it might work with a VPN connection`
+        }
+      }
+    );
+
+    checkLinks.mockReturnValue(
+      Promise.resolve({
+        '/oops/customize-broken-link-err': { status: 'dead', statusCode: 404 },
+        'https://github.com/unified/oops': {
+          status: 'dead',
+          statusCode: 404
+        },
+      })
+    );
+
+    return lint.then((vFile) => {
+      expect(checkLinks).toHaveBeenCalledTimes(1);
+      expect(vFile.messages.length).toBe(2);
+      expect(vFile.messages[0].reason)
+        .toBe('Link to /oops/customize-broken-link-err is either dead or it might work with a VPN connection');
+      expect(vFile.messages[1].reason)
+        .toBe('Link to https://github.com/unified/oops is either dead or it might work with a VPN connection');
+    });
+  });
+
   describe('skipLocalhost: true', () => {
     test('localhost', () => {
       const lint = processMarkdown(

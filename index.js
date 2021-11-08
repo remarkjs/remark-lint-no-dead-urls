@@ -45,7 +45,10 @@ function noDeadUrls(ast, file, options) {
         if (!nodes) return;
 
         for (const node of nodes) {
-          file.message(`Link to ${url} is dead`, node);
+          const errorMessage = options.customizeErrorMessage
+            ? options.customizeErrorMessage(url)
+            : `Link to ${url} is dead`;
+          file.message(errorMessage, node);
         }
       });
     }
