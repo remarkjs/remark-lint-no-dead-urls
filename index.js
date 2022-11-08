@@ -1,16 +1,31 @@
-'use strict';
+import {lintRule} from "unified-lint-rule"
+import {visit} from "unist-util-visit"
+// @ts-expect-error this module is not yet typed
+import checkLinks  from "check-links"
+import isOnline from "is-online"
 
-const rule = require('unified-lint-rule');
-const visit = require('unist-util-visit');
-const checkLinks = require('check-links');
-const isOnline = require('is-online');
+/**
+ * @typedef {import('mdast').Root} Root
+ * @typedef {import('mdast').Link} Link
+ * @typedef {import('mdast').Image} Image
+ * @typedef {import('mdast').Definition} Definition
+ *
+ * @typedef {Object} Options
+ * @property {unknown} [gotOptions]
+ * @property {boolean} [skipLocalhost]
+ * @property {boolean} [skipOffline]
+ * @property {Array<string>} [skipUrlPatterns]
+ */
 
+/** @type {import('unified-lint-rule').Rule<Root, Options>} */
 function noDeadUrls(ast, file, options) {
+    /** @type {{[url: string]: Array<Link | Image | Definition>}} */
   const urlToNodes = {};
 
-  const aggregate = (node) => {
+
+  visit(ast, ['link', 'image', 'definition'], (node) => {
+    if (!('url' in node) || !node.url) return;
     const url = node.url;
-    if (!url) return;
     if (
       options.skipLocalhost &&
       /^(https?:\/\/)(localhost|127\.0\.0\.1)(:\d+)?/.test(url)
@@ -31,11 +46,10 @@ function noDeadUrls(ast, file, options) {
     }
 
     urlToNodes[url].push(node);
-  };
-
-  visit(ast, ['link', 'image', 'definition'], aggregate);
+  });
 
   return checkLinks(Object.keys(urlToNodes), options.gotOptions).then(
+    // @ts-expect-error check links is not typed
     (results) => {
       Object.keys(results).forEach((url) => {
         const result = results[url];
@@ -52,6 +66,7 @@ function noDeadUrls(ast, file, options) {
   );
 }
 
+/** @type {import('unified-lint-rule').Rule<Root, Options>} */
 function wrapper(ast, file, options) {
   options = options || {};
   return isOnline().then((online) => {
@@ -65,4 +80,6 @@ function wrapper(ast, file, options) {
   });
 }
 
-module.exports = rule('remark-lint:no-dead-urls', wrapper);
+const remarkLintNotDeadLinks = lintRule('remark-lint:no-dead-urls', wrapper);
+
+export default remarkLintNotDeadLinks;
