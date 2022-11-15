@@ -1,6 +1,5 @@
 import {lintRule} from "unified-lint-rule"
 import {visit} from "unist-util-visit"
-// @ts-expect-error this module is not yet typed
 import checkLinks  from "check-links"
 import isOnline from "is-online"
 
@@ -11,7 +10,7 @@ import isOnline from "is-online"
  * @typedef {import('mdast').Definition} Definition
  *
  * @typedef {Object} Options
- * @property {unknown} [gotOptions]
+ * @property {import('got').OptionsOfTextResponseBody} [gotOptions]
  * @property {boolean} [skipLocalhost]
  * @property {boolean} [skipOffline]
  * @property {Array<string>} [skipUrlPatterns]
@@ -49,7 +48,6 @@ function noDeadUrls(ast, file, options) {
   });
 
   return checkLinks(Object.keys(urlToNodes), options.gotOptions).then(
-    // @ts-expect-error check links is not typed
     (results) => {
       Object.keys(results).forEach((url) => {
         const result = results[url];
