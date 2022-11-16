@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.0
+
+*   Migrate package to [ESM only](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c)
+*   Add [TypeScript](https://www.typescriptlang.org/) typings
+*   Support `remark` version 14
+
 ## 1.1.0
 
 *   Add `skipUrlPatterns` option.
