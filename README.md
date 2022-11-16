@@ -3,7 +3,9 @@
 > [remark-lint][] plugin to ensure that external URLs in your Markdown are
 > alive.
 
-[![NPM](https://img.shields.io/npm/v/remark-lint-no-dead-urls.svg)](https://www.npmjs.com/package/remark-lint-no-dead-urls) [![Build Status](https://travis-ci.org/davidtheclark/remark-lint-no-dead-urls.svg?branch=master)](https://travis-ci.org/davidtheclark/remark-lint-no-dead-urls)
+[![NPM](https://img.shields.io/npm/v/remark-lint-no-dead-urls.svg)](https://www.npmjs.com/package/remark-lint-no-dead-urls)
+[![Build Status](https://github.com/davidtheclark/remark-lint-no-dead-urls/workflows/main/badge.svg)](https://github.com/davidtheclark/remark-lint-no-dead-urls/actions)
+[![Size](https://img.shields.io/bundlephobia/minzip/remark-lint-no-dead-urls.svg)](https://bundlephobia.com/result?p=remark-lint-no-dead-urls)
 
 Checks all of the following:
 
