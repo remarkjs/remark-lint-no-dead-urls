@@ -1,16 +1,23 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {remark} from 'remark'
-import remarkLintNoDeadLinks from './index.js'
+import esmock from 'esmock'
 
 /**
  * Wrapper for calling remark with the linter plugin
  * @param {string} markdown
- * @param {import("./index.js").Options} [options]
+ * @param {import("esmock").MockMap} [globalMockDefinitions]
+ * @param {import("./index.js").Options} [linterOptions]
  * @returns {Promise<import("vfile").VFile>}
  */
-function processMarkdown(markdown, options = {}) {
-  return remark().use(remarkLintNoDeadLinks, options).process(markdown)
+async function processMarkdown(markdown, globalMockDefinitions, linterOptions) {
+  /** @type {import('unified').Plugin<[import('./index.js').Options?], import('mdast').Root, import('mdast').Root>} */
+  const remarkLintNoDeadLinks = await esmock(
+    './index.js',
+    {},
+    globalMockDefinitions
+  )
+  return remark().use(remarkLintNoDeadLinks, linterOptions).process(markdown)
 }
 
 test('works with no URLs', async () => {
@@ -22,206 +29,167 @@ No URLs in here.
   assert.equal(vfile.messages.length, 0)
 })
 
-// Test('supports mix of valid and invalid links', async () => {
-//   await quibble.e
+test('works with mix of valid and invalid links', async () => {
+  const vfile = await processMarkdown(
+    `
+# Title
 
-//   const lint = await processMarkdown(
-//     `
-// # Title
+Here is a [good link](https://www.github.com).
 
-// Here is a [good link](https://www.github.com).
+Here is a [bad link](https://github.com/unified/oops).
 
-// Here is a [bad link](https://github.com/unified/oops).
+Here is a [local link](http://localhost:3000).
+  `,
+    {
+      'check-links': () =>
+        Promise.resolve({
+          'https://www.github.com': {status: 'alive', statusCode: 200},
+          'https://github.com/unified/oops': {
+            status: 'dead',
+            statusCode: 404
+          },
+          'http://localhost:3000': {status: 'dead', statusCode: 404}
+        }),
+      'is-online': () => Promise.resolve(true)
+    }
+  )
 
-// Here is a [local link](http://localhost:3000).
-//   `,
-//     {
-//       gotOptions: {
-//         retry: {
-//           limit: 0
-//         }
-//       }
-//     }
-//   );
-// })
+  assert.equal(vfile.messages.length, 2)
+  assert.equal(
+    vfile.messages[0].reason,
+    'Link to https://github.com/unified/oops is dead'
+  )
+  assert.equal(
+    vfile.messages[1].reason,
+    'Link to http://localhost:3000 is dead'
+  )
+})
 
-//     checkLinks.mockReturnValue(
-//       Promise.resolve({
-//         'https://www.github.com': { status: 'alive', statusCode: 200 },
-//         'https://github.com/unified/oops': {
-//           status: 'dead',
-//           statusCode: 404
-//         },
-//         'http://localhost:3000': { status: 'dead', statusCode: 404 }
-//       })
-//     );
+test('works with definitions and images', async () => {
+  const vfile = await processMarkdown(
+    `
+# Title
 
-//     return lint.then((vFile) => {
-//       expect(checkLinks).toHaveBeenCalledTimes(1);
-//       expect(checkLinks.mock.calls[0][0]).toEqual([
-//         'https://www.github.com',
-//         'https://github.com/unified/oops',
-//         'http://localhost:3000'
-//       ]);
+Here is a good pig: ![picture of pig](/pig-photos/384).
 
-//       expect(vFile.messages.length).toBe(2);
-//       expect(vFile.messages[0].reason).toBe(
-//         'Link to https://github.com/unified/oops is dead'
-//       );
-//       expect(vFile.messages[1].reason).toBe(
-//         'Link to http://localhost:3000 is dead'
-//       );
-//     });
-//   }, 15000);
+Download the pig picture [here](/pig-photos/384).
 
-//   test('works with definitions and images', () => {
-//     const lint = processMarkdown(
-//       dedent`
-//       # Title
+Here is a [bad link]. Here is that [bad link] again.
 
-//       Here is a good pig: ![picture of pig](/pig-photos/384).
+[bad link]: /oops/broken
+    `,
+    {
+      'check-links': () =>
+        Promise.resolve({
+          '/pig-photos/384': {status: 'alive', statusCode: 200},
+          '/oops/broken': {status: 'dead', statusCode: 404}
+        }),
+      'is-online': () => Promise.resolve(true)
+    }
+  )
 
-//       Download the pig picture [here](/pig-photos/384).
+  assert.equal(vfile.messages.length, 1)
+  assert.equal(vfile.messages[0].reason, 'Link to /oops/broken is dead')
+})
 
-//       Here is a [bad link]. Here is that [bad link] again.
+test('skips URLs with unsupported protocols', async () => {
+  const vfile = await processMarkdown(`
+[Send me an email.](mailto:me@me.com)
+[Look at this file.](ftp://path/to/file.txt)
+[Special schema.](flopper://a/b/c)
+    `)
 
-//       [bad link]: /oops/broken
-//     `,
-//       {
-//         gotOptions: {
-//           baseUrl: 'http://my.domain.com'
-//         }
-//       }
-//     );
+  assert.equal(vfile.messages.length, 0)
+})
 
-//     checkLinks.mockReturnValue(
-//       Promise.resolve({
-//         '/pig-photos/384': { status: 'alive', statusCode: 200 },
-//         '/oops/broken': { status: 'dead', statusCode: 404 }
-//       })
-//     );
+test('warns if you are not online', async () => {
+  const vfile = await processMarkdown(
+    `
+Here is a [bad link](https://github.com/davidtheclark/oops).
+    `,
+    {
+      'is-online': () => Promise.resolve(false)
+    }
+  )
 
-//     return lint.then((vFile) => {
-//       expect(checkLinks).toHaveBeenCalledTimes(1);
-//       expect(checkLinks.mock.calls[0][0]).toEqual([
-//         '/pig-photos/384',
-//         '/oops/broken'
-//       ]);
-//       expect(checkLinks.mock.calls[0][1]).toEqual({
-//         baseUrl: 'http://my.domain.com'
-//       });
-//       expect(vFile.messages.length).toBe(1);
-//       expect(vFile.messages[0].reason).toBe('Link to /oops/broken is dead');
-//     });
-//   });
+  assert.equal(vfile.messages.length, 1)
+  assert.equal(
+    vfile.messages[0].reason,
+    'You are not online and have not set skipOffline: true.'
+  )
+})
 
-//   test('skips URLs with unsupported protocols', () => {
-//     const lint = processMarkdown(dedent`
-//       [Send me an email.](mailto:me@me.com)
-//       [Look at this file.](ftp://path/to/file.txt)
-//       [Special schema.](flopper://a/b/c)
-//     `);
+test('works offline with skipOffline enabled', async () => {
+  const vfile = await processMarkdown(
+    `
+Here is a [bad link](https://github.com/davidtheclark/oops).
+    `,
+    {
+      'is-online': () => Promise.resolve(false)
+    },
+    {
+      skipOffline: true
+    }
+  )
 
-//     return lint.then((vFile) => {
-//       expect(checkLinks).toHaveBeenCalledTimes(1);
-//       expect(checkLinks.mock.calls[0][0]).toEqual([
-//         'mailto:me@me.com',
-//         'ftp://path/to/file.txt',
-//         'flopper://a/b/c'
-//       ]);
-//       expect(checkLinks.mock.calls[0][1]).toEqual(undefined);
-//       expect(vFile.messages.length).toBe(0);
-//     });
-//   });
+  assert.equal(vfile.messages.length, 0)
+})
 
-//   test('warns if you are not online', () => {
-//     isOnline.mockReturnValueOnce(Promise.resolve(false));
+test('ignores localhost when skipLocalhost enabled', async () => {
+  const vfile = await processMarkdown(
+    `
+- [http://localhost](http://localhost)
+- [http://localhost/alex/test](http://localhost/alex/test)
+- [http://localhost:3000](http://localhost:3000)
+- [http://localhost:3000/alex/test](http://localhost:3000/alex/test)
+- [https://localhost](http://localhost)
+- [https://localhost/alex/test](http://localhost/alex/test)
+- [https://localhost:3000](http://localhost:3000)
+- [https://localhost:3000/alex/test](http://localhost:3000/alex/test)
+        `,
+    {},
+    {
+      skipLocalhost: true
+    }
+  )
 
-//     const lint = processMarkdown(dedent`
-//       Here is a [bad link](https://github.com/davidtheclark/oops).
-//     `);
+  assert.equal(vfile.messages.length, 0)
+})
 
-//     return lint.then((vFile) => {
-//       expect(vFile.messages.length).toBe(1);
-//       expect(vFile.messages[0].reason).toMatch('You are not online');
-//     });
-//   });
+test('ignore loop back IP (127.0.0.1) when skipLocalhost is enabled', async () => {
+  const vfile = await processMarkdown(
+    `
+- [http://127.0.0.1](http://127.0.0.1)
+- [http://127.0.0.1:3000](http://127.0.0.1:3000)
+- [http://127.0.0.1/alex/test](http://127.0.0.1)
+- [http://127.0.0.1:3000/alex/test](http://127.0.0.1:3000)
+- [https://127.0.0.1](http://127.0.0.1)
+- [https://127.0.0.1:3000](http://127.0.0.1:3000)
+- [https://127.0.0.1/alex/test](http://127.0.0.1)
+- [https://127.0.0.1:3000/alex/test](http://127.0.0.1:3000)
+        `,
+    {},
+    {
+      skipLocalhost: true
+    }
+  )
 
-//   test('skipOffline: true', () => {
-//     isOnline.mockReturnValueOnce(Promise.resolve(false));
+  assert.equal(vfile.messages.length, 0)
+})
 
-//     const lint = processMarkdown(
-//       dedent`
-//       Here is a [bad link](https://github.com/davidtheclark/oops).
-//     `,
-//       {
-//         skipOffline: true
-//       }
-//     );
+test('skipUrlPatterns for content:', async () => {
+  const vfile = await processMarkdown(
+    `
+[Ignore this](http://www.url-to-ignore.com)
+[Ignore this](http://www.url-to-ignore.com/somePath)
+[Ignore this](http://www.url-to-ignore.com/somePath?withQuery=wow)
+[its complicated](http://url-to-ignore.com/somePath/maybe)
+        `,
+    {},
+    {
+      skipUrlPatterns: [/^http:\/\/(.*)url-to-ignore\.com/]
+    }
+  )
 
-//     return lint.then((vFile) => {
-//       expect(vFile.messages.length).toBe(0);
-//     });
-//   });
-
-//   describe('skipLocalhost: true', () => {
-//     test('localhost', () => {
-//       const lint = processMarkdown(
-//         dedent`
-//           - [http://localhost](http://localhost)
-//           - [http://localhost/alex/test](http://localhost/alex/test)
-//           - [http://localhost:3000](http://localhost:3000)
-//           - [http://localhost:3000/alex/test](http://localhost:3000/alex/test)
-//           - [https://localhost](http://localhost)
-//           - [https://localhost/alex/test](http://localhost/alex/test)
-//           - [https://localhost:3000](http://localhost:3000)
-//           - [https://localhost:3000/alex/test](http://localhost:3000/alex/test)
-//         `,
-//         {
-//           skipLocalhost: true
-//         }
-//       );
-
-//       return lint.then((vFile) => {
-//         expect(vFile.messages.length).toBe(0);
-//       });
-//     });
-
-//     test('local IP 127.0.0.1', () => {
-//       const lint = processMarkdown(
-//         dedent`
-//           - [http://127.0.0.1](http://127.0.0.1)
-//           - [http://127.0.0.1:3000](http://127.0.0.1:3000)
-//           - [http://127.0.0.1/alex/test](http://127.0.0.1)
-//           - [http://127.0.0.1:3000/alex/test](http://127.0.0.1:3000)
-//           - [https://127.0.0.1](http://127.0.0.1)
-//           - [https://127.0.0.1:3000](http://127.0.0.1:3000)
-//           - [https://127.0.0.1/alex/test](http://127.0.0.1)
-//           - [https://127.0.0.1:3000/alex/test](http://127.0.0.1:3000)
-//         `,
-//         {
-//           skipLocalhost: true
-//         }
-//       );
-
-//       return lint.then((vFile) => {
-//         expect(vFile.messages.length).toBe(0);
-//       });
-//     });
-//   });
-
-//   test.each([
-//     '[Ignore this](http://www.url-to-ignore.com)',
-//     '[Ignore this](http://www.url-to-ignore.com/somePath)',
-//     '[Ignore this](http://www.url-to-ignore.com/somePath?withQuery=wow)',
-//     '[its complicated](http://url-to-ignore.com/somePath/maybe)'
-//   ])('skipUrlPatterns for content: %s', (markdownContent) => {
-//     const lint = processMarkdown(markdownContent, {
-//       skipUrlPatterns: [/^http:\/\/(.*)url-to-ignore\.com/]
-//     });
-
-//     return lint.then((vFile) => {
-//       expect(vFile.messages.length).toBe(0);
-//     });
-//   });
-// });
+  assert.equal(vfile.messages.length, 0)
+})

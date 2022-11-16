@@ -13,7 +13,7 @@ import isOnline from 'is-online'
  * @property {import('got').OptionsOfTextResponseBody} [gotOptions]
  * @property {boolean} [skipLocalhost]
  * @property {boolean} [skipOffline]
- * @property {Array<string>} [skipUrlPatterns]
+ * @property {Array<string | RegExp>} [skipUrlPatterns]
  */
 
 /** @type {import('unified-lint-rule').Rule<Root, Options>} */
@@ -22,8 +22,7 @@ function noDeadUrls(ast, file, options) {
   const urlToNodes = {}
 
   visit(ast, ['link', 'image', 'definition'], (node) => {
-    if (!('url' in node) || !node.url) return
-    const url = node.url
+    const url = /** @type {Link | Image | Definition} */ (node).url
     if (
       options.skipLocalhost &&
       /^(https?:\/\/)(localhost|127\.0\.0\.1)(:\d+)?/.test(url)
@@ -44,7 +43,7 @@ function noDeadUrls(ast, file, options) {
       urlToNodes[url] = []
     }
 
-    urlToNodes[url].push(node)
+    urlToNodes[url].push(/** @type {Link | Image | Definition} */ (node))
   })
 
   return checkLinks(Object.keys(urlToNodes), options.gotOptions).then(
@@ -54,7 +53,6 @@ function noDeadUrls(ast, file, options) {
         if (result.status !== 'dead') continue
 
         const nodes = urlToNodes[url]
-        if (!nodes) continue
 
         for (const node of nodes) {
           file.message(`Link to ${url} is dead`, node)
