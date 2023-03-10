@@ -52,7 +52,7 @@ The options object may contain any of the following properties:
 *   **skipUrlPatterns** `{Array}` - Array of `String` | `RegExp`.
     A list of patterns for URLs that should be skipped.
     Each URL will be tested against each pattern, and will be ignored if `new RegExp(pattern).test(url) === true`.
-    For example, with `skipUrls: [/^http:\/\/(.*)url-to-ignore\.com/, 'https://never-check.com']`,
+    For example, with `skipUrlPatterns: [/^http:\/\/(.*)url-to-ignore\.com/, 'https://never-check.com']`,
     links with the URLs `http://www.url-to-ignore.com/foo` and `https://never-check.com/foo/bar`
     will not be checked.
 *   **gotOptions** `{Object}` - Passed through [check-links][] to [Got][].
