@@ -12,7 +12,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/davidtheclark/remark-lint-no-dead-urls.git"
+    "url": "git+https://github.com/remarkjs/remark-lint-no-dead-urls.git"
   },
   "keywords": [
     "remark",
@@ -24,9 +24,9 @@
   "author": "David Clark",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/davidtheclark/remark-lint-no-dead-urls/issues"
+    "url": "https://github.com/remarkjs/remark-lint-no-dead-urls/issues"
   },
-  "homepage": "https://github.com/davidtheclark/remark-lint-no-dead-urls#readme",
+  "homepage": "https://github.com/remarkjs/remark-lint-no-dead-urls#readme",
   "dependencies": {
     "check-links": "^2.0.0",
     "is-online": "^10.0.0",
