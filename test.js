@@ -17,6 +17,7 @@ async function processMarkdown(markdown, globalMockDefinitions, linterOptions) {
     {},
     globalMockDefinitions
   )
+  // @ts-expect-error: to do: fix types.
   return remark().use(remarkLintNoDeadLinks, linterOptions).process(markdown)
 }
 
