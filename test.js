@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {remark} from 'remark'
+import remarkLintNoDeadUrls from 'remark-lint-no-dead-urls'
 import {MockAgent, getGlobalDispatcher, setGlobalDispatcher} from 'undici'
 import {compareMessage} from 'vfile-sort'
-import remarkLintNoDeadUrls from './index.js'
 
 test('works', async () => {
   const globalDispatcher = getGlobalDispatcher()
