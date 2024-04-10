@@ -37,8 +37,8 @@ Here is another [bad link](https://does-not-exists.com).
   assert.deepEqual(
     file.messages.map((d) => d.reason),
     [
-      'Link to https://exists.com/does/not/ is dead',
-      'Link to https://does-not-exists.com/ is dead'
+      'Unexpected dead URL `https://exists.com/does/not/`, expected live URL',
+      'Unexpected dead URL `https://does-not-exists.com/`, expected live URL'
     ]
   )
 })
@@ -94,10 +94,10 @@ test('checks full URLs normally', async () => {
   assert.deepEqual(
     file.messages.map((d) => d.reason),
     [
-      'Link to http://a.com/ is dead',
-      'Link to https://b.com/ is dead',
-      'Link to c:\\Documents\\c.md is dead',
-      'Link to file:///Users/tilde/d.js is dead'
+      'Unexpected dead URL `http://a.com/`, expected live URL',
+      'Unexpected dead URL `https://b.com/`, expected live URL',
+      'Unexpected dead URL `c:\\Documents\\c.md`, expected live URL',
+      'Unexpected dead URL `file:///Users/tilde/d.js`, expected live URL'
     ]
   )
 })
@@ -128,13 +128,13 @@ test('checks relative URLs w/ `from`', async () => {
   assert.deepEqual(
     file.messages.map((d) => d.reason),
     [
-      'Link to https://example.com/from/a.md is dead',
-      'Link to https://example.com/b.md is dead',
-      'Link to https://example.com/from/c.md is dead',
-      'Link to https://example.com/d.md is dead',
-      'Link to https://example.com/from/folder#e is dead',
-      'Link to https://example.com/from/folder?f is dead',
-      'Link to https://g.com/ is dead'
+      'Unexpected dead URL `https://example.com/from/a.md`, expected live URL',
+      'Unexpected dead URL `https://example.com/b.md`, expected live URL',
+      'Unexpected dead URL `https://example.com/from/c.md`, expected live URL',
+      'Unexpected dead URL `https://example.com/d.md`, expected live URL',
+      'Unexpected dead URL `https://example.com/from/folder#e`, expected live URL',
+      'Unexpected dead URL `https://example.com/from/folder?f`, expected live URL',
+      'Unexpected dead URL `https://g.com/`, expected live URL'
     ]
   )
 })
@@ -159,7 +159,7 @@ test('checks relative URLs w/ `meta.origin`, `meta.pathname`', async () => {
 
   assert.deepEqual(
     file.messages.map((d) => d.reason),
-    ['Link to https://example.com/from/a.md is dead']
+    ['Unexpected dead URL `https://example.com/from/a.md`, expected live URL']
   )
 })
 
@@ -185,9 +185,9 @@ test('works with definitions and images', async () => {
   assert.deepEqual(
     file.messages.map((d) => d.reason),
     [
-      'Link to https://example.com/a is dead',
-      'Link to https://example.com/b is dead',
-      'Link to https://example.com/c is dead'
+      'Unexpected dead URL `https://example.com/a`, expected live URL',
+      'Unexpected dead URL `https://example.com/b`, expected live URL',
+      'Unexpected dead URL `https://example.com/c`, expected live URL'
     ]
   )
 })
@@ -293,7 +293,9 @@ test('should support anchors', async () => {
 
   assert.deepEqual(
     file.messages.map((d) => d.reason),
-    ['Link to https://example.com/#does-not-exist is dead']
+    [
+      'Unexpected dead URL `https://example.com/#does-not-exist`, expected live URL'
+    ]
   )
 })
 
@@ -323,6 +325,8 @@ test('should support redirects', async () => {
 
   assert.deepEqual(
     file.messages.map((d) => d.reason),
-    ['Link to https://example.com/from redirects to https://example.com/to']
+    [
+      'Unexpected redirecting URL `https://example.com/from`, expected final URL `https://example.com/to`'
+    ]
   )
 })
