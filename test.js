@@ -1,196 +1,328 @@
-import test from 'node:test'
 import assert from 'node:assert/strict'
+import test from 'node:test'
 import {remark} from 'remark'
-import esmock from 'esmock'
+import {MockAgent, getGlobalDispatcher, setGlobalDispatcher} from 'undici'
+import {compareMessage} from 'vfile-sort'
+import remarkLintNoDeadUrls from './index.js'
 
-/**
- * Wrapper for calling remark with the linter plugin
- * @param {string} markdown
- * @param {import("esmock").MockMap} [globalMockDefinitions]
- * @param {import("./index.js").Options} [linterOptions]
- * @returns {Promise<import("vfile").VFile>}
- */
-async function processMarkdown(markdown, globalMockDefinitions, linterOptions) {
-  /** @type {import('unified').Plugin<[import('./index.js').Options?], import('mdast').Root, import('mdast').Root>} */
-  const remarkLintNoDeadLinks = await esmock(
-    './index.js',
-    {},
-    globalMockDefinitions
+test('works', async () => {
+  const globalDispatcher = getGlobalDispatcher()
+  const mockAgent = new MockAgent()
+  mockAgent.enableNetConnect(/(?=a)b/)
+  setGlobalDispatcher(mockAgent)
+  const a = mockAgent.get('https://exists.com')
+  a.intercept({path: '/'}).reply(200, 'ok')
+  a.intercept({path: '/does/not/'}).reply(404, 'nok')
+
+  mockAgent
+    .get('https://does-not-exists.com')
+    .intercept({path: '/'})
+    .reply(404, 'nok')
+
+  const file = await remark().use(remarkLintNoDeadUrls).process(`
+# Title
+
+Here is a [good link](https://exists.com).
+
+Here is a [bad link](https://exists.com/does/not/).
+
+Here is another [bad link](https://does-not-exists.com).
+  `)
+
+  await mockAgent.close()
+  await setGlobalDispatcher(globalDispatcher)
+
+  file.messages.sort(compareMessage)
+
+  assert.deepEqual(
+    file.messages.map((d) => d.reason),
+    [
+      'Link to https://exists.com/does/not/ is dead',
+      'Link to https://does-not-exists.com/ is dead'
+    ]
   )
-  // @ts-expect-error: to do: fix types.
-  return remark().use(remarkLintNoDeadLinks, linterOptions).process(markdown)
-}
+})
 
-test('works with no URLs', async () => {
-  const vfile = await processMarkdown(`
+test('works w/o URLs', async () => {
+  const file = await remark().use(remarkLintNoDeadUrls).process(`
 # Title
 
 No URLs in here.
 `)
-  assert.equal(vfile.messages.length, 0)
+
+  assert.equal(file.messages.length, 0)
 })
 
-test('works with mix of valid and invalid links', async () => {
-  const vfile = await processMarkdown(
-    `
-# Title
+test('ignores URLs relative to the current URL normally', async () => {
+  const file = await remark().use(remarkLintNoDeadUrls).process(`
+[](a.md)
+[](/b.md)
+[](./c.md)
+[](../d.md)
+[](#e)
+[](?f)
+[](//g.com)
+[](/h:i)
+[](?j:k)
+[](#l:m)
+`)
 
-Here is a [good link](https://www.github.com).
+  assert.equal(file.messages.length, 0)
+})
 
-Here is a [bad link](https://github.com/unified/oops).
+test('checks full URLs normally', async () => {
+  const globalDispatcher = getGlobalDispatcher()
+  const mockAgent = new MockAgent()
+  mockAgent.enableNetConnect(/(?=a)b/)
+  setGlobalDispatcher(mockAgent)
 
-Here is a [local link](http://localhost:3000).
-  `,
-    {
-      'check-links': () =>
-        Promise.resolve({
-          'https://www.github.com': {status: 'alive', statusCode: 200},
-          'https://github.com/unified/oops': {
-            status: 'dead',
-            statusCode: 404
-          },
-          'http://localhost:3000': {status: 'dead', statusCode: 404}
-        }),
-      'is-online': () => Promise.resolve(true)
-    }
+  const file = await remark().use(remarkLintNoDeadUrls, {
+    // Note: `[]` to overwrite the default only-http check in `skipUrlPatterns`.
+    skipUrlPatterns: []
+  }).process(`
+[](http://a.com)
+[](https://b.com)
+[](C:\\Documents\\c.md)
+[](file:///Users/tilde/d.js)
+`)
+
+  await mockAgent.close()
+  await setGlobalDispatcher(globalDispatcher)
+
+  file.messages.sort(compareMessage)
+
+  assert.deepEqual(
+    file.messages.map((d) => d.reason),
+    [
+      'Link to http://a.com/ is dead',
+      'Link to https://b.com/ is dead',
+      'Link to c:\\Documents\\c.md is dead',
+      'Link to file:///Users/tilde/d.js is dead'
+    ]
   )
+})
 
-  assert.equal(vfile.messages.length, 2)
-  assert.equal(
-    vfile.messages[0].reason,
-    'Link to https://github.com/unified/oops is dead'
+test('checks relative URLs w/ `from`', async () => {
+  const globalDispatcher = getGlobalDispatcher()
+  const mockAgent = new MockAgent()
+  mockAgent.enableNetConnect(/(?=a)b/)
+  setGlobalDispatcher(mockAgent)
+
+  const file = await remark().use(remarkLintNoDeadUrls, {
+    from: 'https://example.com/from/folder'
+  }).process(`
+[](a.md)
+[](/b.md)
+[](./c.md)
+[](../d.md)
+[](#e)
+[](?f)
+[](//g.com)
+`)
+
+  await mockAgent.close()
+  await setGlobalDispatcher(globalDispatcher)
+
+  file.messages.sort(compareMessage)
+
+  assert.deepEqual(
+    file.messages.map((d) => d.reason),
+    [
+      'Link to https://example.com/from/a.md is dead',
+      'Link to https://example.com/b.md is dead',
+      'Link to https://example.com/from/c.md is dead',
+      'Link to https://example.com/d.md is dead',
+      'Link to https://example.com/from/folder#e is dead',
+      'Link to https://example.com/from/folder?f is dead',
+      'Link to https://g.com/ is dead'
+    ]
   )
-  assert.equal(
-    vfile.messages[1].reason,
-    'Link to http://localhost:3000 is dead'
+})
+
+test('checks relative URLs w/ `meta.origin`, `meta.pathname`', async () => {
+  const globalDispatcher = getGlobalDispatcher()
+  const mockAgent = new MockAgent()
+  mockAgent.enableNetConnect(/(?=a)b/)
+  setGlobalDispatcher(mockAgent)
+
+  const file = await remark()
+    .use(remarkLintNoDeadUrls)
+    .process({
+      data: {meta: {origin: 'https://example.com', pathname: '/from/folder'}},
+      value: '[](a.md)'
+    })
+
+  await mockAgent.close()
+  await setGlobalDispatcher(globalDispatcher)
+
+  file.messages.sort(compareMessage)
+
+  assert.deepEqual(
+    file.messages.map((d) => d.reason),
+    ['Link to https://example.com/from/a.md is dead']
   )
 })
 
 test('works with definitions and images', async () => {
-  const vfile = await processMarkdown(
-    `
-# Title
+  const globalDispatcher = getGlobalDispatcher()
+  const mockAgent = new MockAgent()
+  mockAgent.enableNetConnect(/(?=a)b/)
+  setGlobalDispatcher(mockAgent)
 
-Here is a good pig: ![picture of pig](/pig-photos/384).
+  const file = await remark().use(remarkLintNoDeadUrls).process(`
+![image](https://example.com/a)
 
-Download the pig picture [here](/pig-photos/384).
+[link](https://example.com/b)
 
-Here is a [bad link]. Here is that [bad link] again.
+[definition]: https://example.com/c
+    `)
 
-[bad link]: /oops/broken
-    `,
-    {
-      'check-links': () =>
-        Promise.resolve({
-          '/pig-photos/384': {status: 'alive', statusCode: 200},
-          '/oops/broken': {status: 'dead', statusCode: 404}
-        }),
-      'is-online': () => Promise.resolve(true)
-    }
+  await mockAgent.close()
+  await setGlobalDispatcher(globalDispatcher)
+
+  file.messages.sort(compareMessage)
+
+  assert.deepEqual(
+    file.messages.map((d) => d.reason),
+    [
+      'Link to https://example.com/a is dead',
+      'Link to https://example.com/b is dead',
+      'Link to https://example.com/c is dead'
+    ]
   )
-
-  assert.equal(vfile.messages.length, 1)
-  assert.equal(vfile.messages[0].reason, 'Link to /oops/broken is dead')
 })
 
 test('skips URLs with unsupported protocols', async () => {
-  const vfile = await processMarkdown(`
-[Send me an email.](mailto:me@me.com)
-[Look at this file.](ftp://path/to/file.txt)
-[Special schema.](flopper://a/b/c)
-    `)
+  const globalDispatcher = getGlobalDispatcher()
+  const mockAgent = new MockAgent()
+  mockAgent.enableNetConnect(/(?=a)b/)
+  setGlobalDispatcher(mockAgent)
 
-  assert.equal(vfile.messages.length, 0)
-})
+  const file = await remark().use(remarkLintNoDeadUrls).process(`
+[a](mailto:me@me.com)
 
-test('warns if you are not online', async () => {
-  const vfile = await processMarkdown(
-    `
-Here is a [bad link](https://github.com/davidtheclark/oops).
-    `,
-    {
-      'is-online': () => Promise.resolve(false)
-    }
+[b](ftp://path/to/file.txt)
+
+[c](flopper://a/b/c)
+`)
+
+  await mockAgent.close()
+  await setGlobalDispatcher(globalDispatcher)
+
+  file.messages.sort(compareMessage)
+
+  assert.deepEqual(
+    file.messages.map((d) => d.reason),
+    []
   )
-
-  assert.equal(vfile.messages.length, 1)
-  assert.equal(
-    vfile.messages[0].reason,
-    'You are not online and have not set skipOffline: true.'
-  )
-})
-
-test('works offline with skipOffline enabled', async () => {
-  const vfile = await processMarkdown(
-    `
-Here is a [bad link](https://github.com/davidtheclark/oops).
-    `,
-    {
-      'is-online': () => Promise.resolve(false)
-    },
-    {
-      skipOffline: true
-    }
-  )
-
-  assert.equal(vfile.messages.length, 0)
 })
 
 test('ignores localhost when skipLocalhost enabled', async () => {
-  const vfile = await processMarkdown(
-    `
-- [http://localhost](http://localhost)
-- [http://localhost/alex/test](http://localhost/alex/test)
-- [http://localhost:3000](http://localhost:3000)
-- [http://localhost:3000/alex/test](http://localhost:3000/alex/test)
-- [https://localhost](http://localhost)
-- [https://localhost/alex/test](http://localhost/alex/test)
-- [https://localhost:3000](http://localhost:3000)
-- [https://localhost:3000/alex/test](http://localhost:3000/alex/test)
-        `,
-    {},
-    {
-      skipLocalhost: true
-    }
-  )
+  const globalDispatcher = getGlobalDispatcher()
+  const mockAgent = new MockAgent()
+  mockAgent.enableNetConnect(/(?=a)b/)
+  setGlobalDispatcher(mockAgent)
 
-  assert.equal(vfile.messages.length, 0)
+  const file = await remark().use(remarkLintNoDeadUrls, {skipLocalhost: true})
+    .process(`
+* [a](http://localhost)
+* [b](http://localhost/alex/test)
+* [c](http://localhost:3000)
+* [d](http://localhost:3000/alex/test)
+* [e](http://127.0.0.1)
+* [f](http://127.0.0.1:3000)
+`)
+
+  await mockAgent.close()
+  await setGlobalDispatcher(globalDispatcher)
+
+  file.messages.sort(compareMessage)
+
+  assert.deepEqual(
+    file.messages.map((d) => d.reason),
+    []
+  )
 })
 
-test('ignore loop back IP (127.0.0.1) when skipLocalhost is enabled', async () => {
-  const vfile = await processMarkdown(
-    `
-- [http://127.0.0.1](http://127.0.0.1)
-- [http://127.0.0.1:3000](http://127.0.0.1:3000)
-- [http://127.0.0.1/alex/test](http://127.0.0.1)
-- [http://127.0.0.1:3000/alex/test](http://127.0.0.1:3000)
-- [https://127.0.0.1](http://127.0.0.1)
-- [https://127.0.0.1:3000](http://127.0.0.1:3000)
-- [https://127.0.0.1/alex/test](http://127.0.0.1)
-- [https://127.0.0.1:3000/alex/test](http://127.0.0.1:3000)
-        `,
-    {},
-    {
-      skipLocalhost: true
-    }
-  )
+test('skipUrlPatterns for content', async () => {
+  const globalDispatcher = getGlobalDispatcher()
+  const mockAgent = new MockAgent()
+  mockAgent.enableNetConnect(/(?=a)b/)
+  setGlobalDispatcher(mockAgent)
 
-  assert.equal(vfile.messages.length, 0)
+  const file = await remark().use(remarkLintNoDeadUrls, {
+    skipUrlPatterns: [/^http:\/\/aaa\.com/, '^http://bbb\\.com']
+  }).process(`
+[a](http://aaa.com)
+[b](http://aaa.com/somePath)
+[c](http://aaa.com/somePath?withQuery=wow)
+[d](http://bbb.com/somePath/maybe)
+`)
+
+  await mockAgent.close()
+  await setGlobalDispatcher(globalDispatcher)
+
+  file.messages.sort(compareMessage)
+
+  assert.deepEqual(
+    file.messages.map((d) => d.reason),
+    []
+  )
 })
 
-test('skipUrlPatterns for content:', async () => {
-  const vfile = await processMarkdown(
-    `
-[Ignore this](http://www.url-to-ignore.com)
-[Ignore this](http://www.url-to-ignore.com/somePath)
-[Ignore this](http://www.url-to-ignore.com/somePath?withQuery=wow)
-[its complicated](http://url-to-ignore.com/somePath/maybe)
-        `,
-    {},
-    {
-      skipUrlPatterns: [/^http:\/\/(.*)url-to-ignore\.com/]
-    }
-  )
+test('should support anchors', async () => {
+  const globalDispatcher = getGlobalDispatcher()
+  const mockAgent = new MockAgent()
+  mockAgent.enableNetConnect(/(?=a)b/)
+  setGlobalDispatcher(mockAgent)
+  const site = mockAgent.get('https://example.com')
 
-  assert.equal(vfile.messages.length, 0)
+  site.intercept({path: '/'}).reply(200, '<h1 id=exists>hi</h1>', {
+    headers: {'Content-Type': 'text/html'}
+  })
+
+  const file = await remark().use(remarkLintNoDeadUrls).process(`
+[a](https://example.com#exists)
+[b](https://example.com#does-not-exist)
+  `)
+
+  await mockAgent.close()
+  await setGlobalDispatcher(globalDispatcher)
+
+  file.messages.sort(compareMessage)
+
+  assert.deepEqual(
+    file.messages.map((d) => d.reason),
+    ['Link to https://example.com/#does-not-exist is dead']
+  )
+})
+
+test('should support redirects', async () => {
+  const globalDispatcher = getGlobalDispatcher()
+  const mockAgent = new MockAgent()
+  mockAgent.enableNetConnect(/(?=a)b/)
+  setGlobalDispatcher(mockAgent)
+  const site = mockAgent.get('https://example.com')
+
+  site.intercept({path: '/from'}).reply(301, '', {
+    headers: {Location: '/to'}
+  })
+
+  site.intercept({path: '/to'}).reply(200, 'ok', {
+    headers: {'Content-Type': 'text/html'}
+  })
+
+  const file = await remark().use(remarkLintNoDeadUrls).process(`
+[a](https://example.com/from)
+  `)
+
+  await mockAgent.close()
+  await setGlobalDispatcher(globalDispatcher)
+
+  file.messages.sort(compareMessage)
+
+  assert.deepEqual(
+    file.messages.map((d) => d.reason),
+    ['Link to https://example.com/from redirects to https://example.com/to']
+  )
 })
