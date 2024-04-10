@@ -7,8 +7,6 @@
     "exactOptionalPropertyTypes": true,
     "lib": ["es2020"],
     "module": "node16",
-    // `check-links` has broken types.
-    "skipLibCheck": true,
     "strict": true,
     "target": "es2020"
   },
