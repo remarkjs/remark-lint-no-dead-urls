@@ -70,16 +70,8 @@
   },
   "remarkConfig": {
     "plugins": [
-      "remark-preset-wooorm",
-      [
-        "remark-preset-wooorm/node_modules/remark-gfm/index.js",
-        false
-      ],
-      "remark-gfm"
-    ],
-    "settings": {
-      "listItemIndent": "tab"
-    }
+      "remark-preset-wooorm"
+    ]
   },
   "typeCoverage": {
     "atLeast": 100,
