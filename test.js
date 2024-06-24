@@ -231,6 +231,7 @@ test('ignores localhost when skipLocalhost enabled', async () => {
 * [d](http://localhost:3000/alex/test)
 * [e](http://127.0.0.1)
 * [f](http://127.0.0.1:3000)
+* [g](http://example.com)
 `)
 
   await mockAgent.close()
@@ -240,7 +241,7 @@ test('ignores localhost when skipLocalhost enabled', async () => {
 
   assert.deepEqual(
     file.messages.map((d) => d.reason),
-    []
+    ['Unexpected dead URL `http://example.com/`, expected live URL']
   )
 })
 
