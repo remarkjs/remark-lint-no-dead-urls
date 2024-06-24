@@ -299,6 +299,34 @@ test('should support anchors', async () => {
   )
 })
 
+test('should support `deadOrAlive` options', async () => {
+  const globalDispatcher = getGlobalDispatcher()
+  const mockAgent = new MockAgent()
+  mockAgent.enableNetConnect(/(?=a)b/)
+  setGlobalDispatcher(mockAgent)
+  const site = mockAgent.get('https://example.com')
+
+  site.intercept({path: '/'}).reply(200, '<h1>hi</h1>', {
+    headers: {'Content-Type': 'text/html'}
+  })
+
+  const file = await remark().use(remarkLintNoDeadUrls, {
+    deadOrAliveOptions: {checkAnchor: false}
+  }).process(`
+[b](https://example.com#does-not-exist)
+  `)
+
+  await mockAgent.close()
+  await setGlobalDispatcher(globalDispatcher)
+
+  file.messages.sort(compareMessage)
+
+  assert.deepEqual(
+    file.messages.map((d) => d.reason),
+    []
+  )
+})
+
 test('should support redirects', async () => {
   const globalDispatcher = getGlobalDispatcher()
   const mockAgent = new MockAgent()

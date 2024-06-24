@@ -1,11 +1,20 @@
 /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/consistent-type-definitions */
 
+import type {Options as DeadOrAliveOptions} from 'dead-or-alive'
+
 export {default} from './lib/index.js'
 
 /**
  * Configuration.
  */
 export interface Options {
+  /**
+   * Options passed to `dead-or-alive`
+   * (optional);
+   * `deadOrAliveOptions.findUrls` is always off as further URLs are not used
+   * by `remark-lint-no-dead-urls`.
+   */
+  deadOrAliveOptions?: DeadOrAliveOptions | null | undefined
   /**
    * Check relative values relative to this URL
    * (optional, example: `'https://example.com/from'`).
@@ -14,7 +23,9 @@ export interface Options {
   /**
    * Whether to ignore `localhost` links such as `http://localhost/*`,
    * `http://127.0.0.1/*`
-   * (default: `false`).
+   * (default: `false`);
+   * shortcut for a skip pattern of
+   * `/^(https?:\/\/)(localhost|127\.0\.0\.1)(:\d+)?/`.
    */
   skipLocalhost?: boolean | null | undefined
   /**
