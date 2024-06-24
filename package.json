@@ -1,14 +1,14 @@
 {
   "name": "remark-lint-no-dead-urls",
   "version": "1.1.0",
-  "description": "Ensure that URLs in your Markdown are alive",
+  "description": "remark-lint rule to warn when URLs are dead",
   "license": "MIT",
   "keywords": [
     "lint",
     "markdown",
-    "remark",
-    "remark-lint",
     "remark-lint-rule",
+    "remark-lint",
+    "remark",
     "rule"
   ],
   "repository": "remarkjs/remark-lint-no-dead-urls",
@@ -58,9 +58,9 @@
     "build": "tsc --build --clean && tsc --build && type-coverage",
     "format": "remark . --frail --output --quiet && prettier . --log-level warn --write && xo --fix",
     "prepack": "npm run build && npm run format",
-    "test": "npm run build && npm run format && npm run test-coverage",
     "test-api": "node --conditions development test.js",
-    "test-coverage": "c8 --100 --reporter lcov npm run test-api"
+    "test-coverage": "c8 --100 --reporter lcov npm run test-api",
+    "test": "npm run build && npm run format && npm run test-coverage"
   },
   "prettier": {
     "bracketSpacing": false,
@@ -82,6 +82,31 @@
     "strict": true
   },
   "xo": {
+    "overrides": [
+      {
+        "files": [
+          "**/*.d.ts"
+        ],
+        "rules": {
+          "@typescript-eslint/array-type": [
+            "error",
+            {
+              "default": "generic"
+            }
+          ],
+          "@typescript-eslint/ban-types": [
+            "error",
+            {
+              "extendDefaults": true
+            }
+          ],
+          "@typescript-eslint/consistent-type-definitions": [
+            "error",
+            "interface"
+          ]
+        }
+      }
+    ],
     "prettier": true
   }
 }

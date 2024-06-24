@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/consistent-type-definitions */
-
 import type {Options as DeadOrAliveOptions} from 'dead-or-alive'
 
 export {default} from './lib/index.js'
@@ -14,7 +12,7 @@ export interface Options {
    * `deadOrAliveOptions.findUrls` is always off as further URLs are not used
    * by `remark-lint-no-dead-urls`.
    */
-  deadOrAliveOptions?: DeadOrAliveOptions | null | undefined
+  deadOrAliveOptions?: Readonly<DeadOrAliveOptions> | null | undefined
   /**
    * Check relative values relative to this URL
    * (optional, example: `'https://example.com/from'`).
