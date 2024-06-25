@@ -15,7 +15,9 @@ export interface Options {
   deadOrAliveOptions?: Readonly<DeadOrAliveOptions> | null | undefined
   /**
    * Check relative values relative to this URL
-   * (optional, example: `'https://example.com/from'`).
+   * (optional, example: `'https://example.com/from'`);
+   * you can also define this by setting `origin` and `pathname` in
+   * `file.data.meta`.
    */
   from?: string | null | undefined
   /**

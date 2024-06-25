@@ -1,123 +1,251 @@
 # remark-lint-no-dead-urls
 
-> [remark-lint][] plugin to ensure that external URLs in your Markdown are
-> alive.
+[![Build][badge-build-image]][badge-build-url]
+[![Coverage][badge-coverage-image]][badge-coverage-url]
+[![Downloads][badge-downloads-image]][badge-downloads-url]
+[![Size][badge-size-image]][badge-size-url]
+[![Sponsors][badge-sponsors-image]][badge-collective-url]
+[![Backers][badge-backers-image]][badge-collective-url]
+[![Chat][badge-chat-image]][badge-chat-url]
 
-[![Build Status](https://github.com/remarkjs/remark-lint-no-dead-urls/workflows/main/badge.svg)](https://github.com/remarkjs/remark-lint-no-dead-urls/actions)
-[![Coverage](https://img.shields.io/codecov/c/github/remarkjs/remark-lint-no-dead-urls.svg)](https://codecov.io/github/remarkjs/remark-lint-no-dead-urls)
-[![NPM](https://img.shields.io/npm/v/remark-lint-no-dead-urls.svg)](https://www.npmjs.com/package/remark-lint-no-dead-urls)
-[![Size](https://img.shields.io/bundlephobia/minzip/remark-lint-no-dead-urls.svg)](https://bundlephobia.com/result?p=remark-lint-no-dead-urls)
+**[`remark-lint`][github-remark-lint]** rule to warn when URLs are dead.
 
-Checks all of the following:
+## Contents
 
-```md
-Checks [links](https://www.github.com).
+* [What is this?](#what-is-this)
+* [When should I use this?](#when-should-i-use-this)
+* [Install](#install)
+* [Use](#use)
+* [API](#api)
+  * [`Options`](#options)
+  * [`unified().use(remarkLintNoDeadUrls[, options])`](#unifieduseremarklintnodeadurls-options)
+* [Related](#related)
+* [Contribute](#contribute)
+* [License](#license)
 
-Checks images: ![horse](/path/to/horse.jpg)
+## What is this?
 
-Checks definitions: see the [walrus].
+This package checks whether URLs are alive or not.
 
-[walrus]: /path/to/walrus.jpg
+## When should I use this?
+
+You can use this package to check that URLs are alive.
+
+It’s similar to [`remark-validate-links`][github-remark-validate-links],
+but there’s an important difference.
+That package checks the file system locally:
+whether `path/to/example.md` exists.
+But `remark-lint-no-dead-urls` checks the internet:
+whether `https://a.com` is alive,
+`/docs/example` is reachable on `https://mydomain.com`,
+and even whether certain IDs exist on a web page.
+
+This package uses [`dead-or-alive`][github-dead-or-alive].
+You can use it when you want to check URLs programmatically yourself.
+
+## Install
+
+This package is [ESM only][github-gist-esm].
+In Node.js (version 16+),
+install with [npm][npm-install]:
+
+```sh
+npm install remark-lint-no-dead-urls
 ```
 
-Uses [check-links][] to check URLs for liveness.
+In Deno with [`esm.sh`][esm-sh]:
 
-A few details to keep in mind:
-
-* By default, relative URLs are skipped.
-  To check relative URLs, set `gotOptions.baseUrl` (see below).
-* Ignores absolute URLs with protocols other than `http:` and `https:`.
-* [check-links][] memoizes results, so on any given run each URL will only be
-  pinged once; subsequent checks will be returned from the cache.
-
-## Usage
-
-Use like any other [remark-lint][] plugin.
-Check out the [remark-lint][] documentation for details.
-
-## Options
-
-All options are optional.
-The options object may contain any of the following properties:
-
-* **skipOffline** `{boolean}` - Default: `false`.
-  By default, if you are offline when you run the check you will receive a
-  warning.
-  If you want to let offline runs quietly pass, set this option to `true`.
-* **skipLocalhost** `{boolean}` - Default: `false`.
-  By default, `localhost` links are treated the same as other links, so if
-  your project is not running locally you’ll receive a warning.
-  If you want to ignore `localhost` links (e.g. `http://localhost/*`,
-  `http://127.0.0.1/*`), set this option to `true`.
-* **skipUrlPatterns** `{Array}` - Array of `String` | `RegExp`.
-  A list of patterns for URLs that should be skipped.
-  Each URL will be tested against each pattern, and will be ignored if
-  `new RegExp(pattern).test(url) === true`.
-  For example, with
-  `skipUrlPatterns: [/^http:\/\/(.*)url-to-ignore\.com/,
-  'https://never-check.com']`,
-  links with the URLs `http://www.url-to-ignore.com/foo`
-  and
-  `https://never-check.com/foo/bar`
-  will not be checked.
-* **gotOptions** `{Object}` - Passed through [check-links][] to [Got][].
-  See documentation for
-  [Got options](https://github.com/sindresorhus/got#options).
-  With these options, you can customize retry logic, specify custom headers,
-  and more.
-  Here are some specific Got options that you might want to use:
-  * **gotOptions.prefixUrl** `{string}` - Used as the base URL against
-    which relative URLs are checked.
-    By default, relative URLs are ignored: you must provide this option to
-    check them.
-    For example, with `prefixUrl: 'https://www.github.com'`, the relative
-    URL `/davidtheclark` is checked as `https://www.github.com/davidtheclark`.
-  * **gotOptions.concurrency** `{number}` - Maximum number of URLs to check
-    concurrently (default `8`).
-
-## Example
-
-When this rule is turned on, the following `valid.md` is ok:
-
-```md
-Here is a [good link](https://www.github.com/wooorm/remark)
+```js
+import remarkLintNoDeadUrls from 'https://esm.sh/remark-lint-no-dead-urls@1'
 ```
 
-When this rule is turned on, the following `invalid.md` is **not** ok:
+In browsers with [`esm.sh`][esm-sh]:
 
-```md
-Here is a [bad link](https://www.github.com/wooom/remark-dead-link)
+```html
+<script type="module">
+  import remarkLintNoDeadUrls from 'https://esm.sh/remark-lint-no-dead-urls@1?bundle'
+</script>
 ```
 
-```text
-1:11-1:68: Link to https://www.github.com/wooom/remark-dead-link is dead
+## Use
+
+On the API:
+
+```js
+import remarkLint from 'remark-lint'
+import remarkLintNoDeadUrls from 'remark-lint-no-dead-urls'
+import remarkParse from 'remark-parse'
+import remarkStringify from 'remark-stringify'
+import {read} from 'to-vfile'
+import {unified} from 'unified'
+import {reporter} from 'vfile-reporter'
+
+const file = await read('example.md')
+
+await unified()
+  .use(remarkParse)
+  .use(remarkLint)
+  .use(remarkLintNoDeadUrls)
+  .use(remarkStringify)
+  .process(file)
+
+console.error(reporter(file))
 ```
 
-**By default, relative links are ignored.**
-To check relative links, you must provide `gotOptions.baseUrl` as an option.
+On the CLI:
 
-When nothing is passed, the following `valid.md` is ok:
-
-```md
-Here is a [good relative link](wooorm/remark)
-
-Here is a [bad relative link](wooorm/remark-dead-link)
+```sh
+remark --frail --use remark-lint --use remark-lint-no-dead-urls .
 ```
 
-When `https://www.github.com` is passed in, the following `valid.md` is ok:
+On the CLI in a config file (here a `package.json`):
 
-```md
-Here is a [good relative link](wooorm/remark)
+```diff
+ …
+ "remarkConfig": {
+   "plugins": [
+     …
+     "remark-lint",
++    "remark-lint-no-dead-urls",
+     …
+   ]
+ }
+ …
 ```
 
-But the following `invalid.md` is **not** ok:
+## API
 
-```md
-Here is a [bad relative link](wooorm/remark-dead-link)
-```
+This package exports no identifiers.
+It exports the additional [TypeScript][] type
+[`Options`][api-options].
+The default export is
+[`remarkLintNoDeadUrls`][api-remark-lint-no-dead-urls].
 
-[check-links]: https://github.com/transitive-bullshit/check-links
+### `Options`
 
-[got]: https://github.com/sindresorhus/got
+Configuration (TypeScript type).
 
-[remark-lint]: https://github.com/remarkjs/remark-lint
+###### Fields
+
+* `deadOrAliveOptions` (`Options` from `dead-or-alive`, optional)
+  — options passed to `dead-or-alive`;
+  `deadOrAliveOptions.findUrls` is always off as further URLs are not used
+  by `remark-lint-no-dead-urls`
+* `from` (`string`, optional, example: `'https://example.com/from'`)
+  — check relative values relative to this URL;
+  you can also define this by setting `origin` and `pathname` in
+  `file.data.meta`
+* `skipLocalhost` (`boolean`, default: `false`)
+  — whether to ignore `localhost` links such as `http://localhost/*`,
+  `http://127.0.0.1/*`;
+  shortcut for a skip pattern of
+  `/^(https?:\/\/)(localhost|127\.0\.0\.1)(:\d+)?/`
+* `skipOffline` (`boolean`, default: `false`)
+  — whether to let offline runs pass quietly
+* `skipUrlPatterns` (`Array<RegExp | string>`, optional)
+  — list of patterns for URLs that should be skipped;
+  each URL will be tested against each pattern and will be ignored if
+  `new RegExp(pattern).test(url) === true`
+
+### `unified().use(remarkLintNoDeadUrls[, options])`
+
+Warn when URLs are dead.
+
+###### Notes
+
+To improve performance,
+decrease `deadOrAliveOptions.maxRetries` and/or decrease the value used
+for `deadOrAliveOptions.sleep`.
+The normal behavior is to assume connections might be flakey and to sleep a
+while and retry a couple times.
+
+If you do not care about whether anchors work and HTML redirects you can
+pass `deadOrAliveOptions.checkAnchor: false` and
+`deadOrAliveOptions.followMetaHttpEquiv: false`,
+which enables a fast path without parsing HTML.
+
+###### Parameters
+
+* `options` ([`Options`][api-options], optional)
+  — configuration
+
+###### Returns
+
+Transform (`(tree: Root, file: VFile) => Promise<Root>`).
+
+## Related
+
+* [`remark-lint`][github-remark-lint]
+  — markdown code style linter
+* [`remark-validate-links`][github-remark-validate-links]
+  — ensure external links are alive
+
+## Contribute
+
+See [`contributing.md`][health-contributing] in [`remarkjs/.github`][health]
+for ways to get started.
+See [`support.md`][health-support] for ways to get help.
+
+This project has a [code of conduct][health-coc].
+By interacting with this repository, organization, or community you agree to
+abide by its terms.
+
+## License
+
+[MIT][file-license] © [David Clark][github-david-clark]
+
+[api-remark-lint-no-dead-urls]: #unifieduseremarklintnodeadurls-options
+
+[api-options]: #options
+
+[badge-backers-image]: https://opencollective.com/unified/backers/badge.svg
+
+[badge-build-image]: https://github.com/remarkjs/remark-lint-no-dead-urls/actions/workflows/main.yml/badge.svg
+
+[badge-build-url]: https://github.com/remarkjs/remark-lint-no-dead-urls/actions
+
+[badge-collective-url]: https://opencollective.com/unified
+
+[badge-coverage-image]: https://img.shields.io/codecov/c/github/remarkjs/remark-lint-no-dead-urls.svg
+
+[badge-coverage-url]: https://codecov.io/github/remarkjs/remark-lint-no-dead-urls
+
+[badge-downloads-image]: https://img.shields.io/npm/dm/remark-lint-no-dead-urls.svg
+
+[badge-downloads-url]: https://www.npmjs.com/package/remark-lint-no-dead-urls
+
+[badge-size-image]: https://img.shields.io/bundlejs/size/remark-lint-no-dead-urls
+
+[badge-size-url]: https://bundlejs.com/?q=remark-lint-no-dead-urls
+
+[badge-sponsors-image]: https://opencollective.com/unified/sponsors/badge.svg
+
+[badge-chat-image]: https://img.shields.io/badge/chat-discussions-success.svg
+
+[badge-chat-url]: https://github.com/remarkjs/remark/discussions
+
+[esm-sh]: https://esm.sh
+
+[file-license]: license
+
+[github-david-clark]: https://github.com/davidtheclark
+
+[github-dead-or-alive]: https://github.com/wooorm/dead-or-alive
+
+[github-gist-esm]: https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c
+
+[github-remark-validate-links]: https://github.com/remarkjs/remark-validate-links
+
+[github-remark-lint]: https://github.com/remarkjs/remark-lint
+
+[health-coc]: https://github.com/remarkjs/.github/blob/main/code-of-conduct.md
+
+[health-contributing]: https://github.com/remarkjs/.github/blob/main/contributing.md
+
+[health-support]: https://github.com/remarkjs/.github/blob/main/support.md
+
+[health]: https://github.com/remarkjs/.github
+
+[npm-install]: https://docs.npmjs.com/cli/install
+
+[typescript]: https://www.typescriptlang.org
