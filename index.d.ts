@@ -9,8 +9,8 @@ export interface Options {
   /**
    * Options passed to `dead-or-alive`
    * (optional);
-   * `deadOrAliveOptions.findUrls` is always off as further URLs are not used
-   * by `remark-lint-no-dead-urls`.
+   * `deadOrAliveOptions.findUrls` is always off as further URLs are not
+   * applicable.
    */
   deadOrAliveOptions?: Readonly<DeadOrAliveOptions> | null | undefined
   /**

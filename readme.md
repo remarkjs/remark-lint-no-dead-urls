@@ -35,7 +35,9 @@ It’s similar to [`remark-validate-links`][github-remark-validate-links],
 but there’s an important difference.
 That package checks the file system locally:
 whether `path/to/example.md` exists.
-But `remark-lint-no-dead-urls` checks the internet:
+But this package,
+`remark-lint-no-dead-urls`,
+checks the internet:
 whether `https://a.com` is alive,
 `/docs/example` is reachable on `https://mydomain.com`,
 and even whether certain IDs exist on a web page.
@@ -72,8 +74,8 @@ In browsers with [`esm.sh`][esm-sh]:
 On the API:
 
 ```js
-import remarkLint from 'remark-lint'
 import remarkLintNoDeadUrls from 'remark-lint-no-dead-urls'
+import remarkLint from 'remark-lint'
 import remarkParse from 'remark-parse'
 import remarkStringify from 'remark-stringify'
 import {read} from 'to-vfile'
@@ -129,8 +131,8 @@ Configuration (TypeScript type).
 
 * `deadOrAliveOptions` (`Options` from `dead-or-alive`, optional)
   — options passed to `dead-or-alive`;
-  `deadOrAliveOptions.findUrls` is always off as further URLs are not used
-  by `remark-lint-no-dead-urls`
+  [`deadOrAliveOptions.findUrls`][github-dead-or-alive-options] is always off
+  as further URLs are not applicable
 * `from` (`string`, optional, example: `'https://example.com/from'`)
   — check relative values relative to this URL;
   you can also define this by setting `origin` and `pathname` in
@@ -154,14 +156,16 @@ Warn when URLs are dead.
 ###### Notes
 
 To improve performance,
-decrease `deadOrAliveOptions.maxRetries` and/or decrease the value used
-for `deadOrAliveOptions.sleep`.
+decrease `maxRetries` in [`deadOrAliveOptions`][github-dead-or-alive-options]
+and/or decrease the value used for
+`sleep` in `deadOrAliveOptions`.
 The normal behavior is to assume connections might be flakey and to sleep a
 while and retry a couple times.
 
-If you do not care about whether anchors work and HTML redirects you can
-pass `deadOrAliveOptions.checkAnchor: false` and
-`deadOrAliveOptions.followMetaHttpEquiv: false`,
+If you do not care whether anchors exist and don’t need to support HTML
+redirects,
+you can pass `checkAnchor: false` and `followMetaHttpEquiv: false` in
+[`deadOrAliveOptions`][github-dead-or-alive-options],
 which enables a fast path without parsing HTML.
 
 ###### Parameters
@@ -178,7 +182,7 @@ Transform (`(tree: Root, file: VFile) => Promise<Root>`).
 * [`remark-lint`][github-remark-lint]
   — markdown code style linter
 * [`remark-validate-links`][github-remark-validate-links]
-  — ensure external links are alive
+  — ensure local links work
 
 ## Contribute
 
@@ -229,6 +233,8 @@ abide by its terms.
 [file-license]: license
 
 [github-david-clark]: https://github.com/davidtheclark
+
+[github-dead-or-alive-options]: https://github.com/wooorm/dead-or-alive#options
 
 [github-dead-or-alive]: https://github.com/wooorm/dead-or-alive
 
