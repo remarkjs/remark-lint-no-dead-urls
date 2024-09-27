@@ -60,14 +60,14 @@ npm install remark-lint-no-dead-urls
 In Deno with [`esm.sh`][esm-sh]:
 
 ```js
-import remarkLintNoDeadUrls from 'https://esm.sh/remark-lint-no-dead-urls@1'
+import remarkLintNoDeadUrls from 'https://esm.sh/remark-lint-no-dead-urls@2'
 ```
 
 In browsers with [`esm.sh`][esm-sh]:
 
 ```html
 <script type="module">
-  import remarkLintNoDeadUrls from 'https://esm.sh/remark-lint-no-dead-urls@1?bundle'
+  import remarkLintNoDeadUrls from 'https://esm.sh/remark-lint-no-dead-urls@2?bundle'
 </script>
 ```
 
