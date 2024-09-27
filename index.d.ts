@@ -1,4 +1,4 @@
-import type {Options as DeadOrAliveOptions} from 'dead-or-alive'
+import type {Options as RawDeadOrAliveOptions} from 'dead-or-alive'
 
 export {default} from './lib/index.js'
 
@@ -40,4 +40,16 @@ export interface Options {
    * `new RegExp(pattern).test(url) === true`.
    */
   skipUrlPatterns?: ReadonlyArray<RegExp | string> | null | undefined
+}
+
+/**
+ * Configuration for `dead-or-alive` as supported by
+ * `remark-lint-no-dead-urls`.
+ */
+interface DeadOrAliveOptions extends RawDeadOrAliveOptions {
+  /**
+   * Find URLs in the final resource;
+   * not supported in `remark-lint-no-dead-urls` as it’s not applicable.
+   */
+  findUrls?: never
 }
