@@ -20,16 +20,18 @@
   * [`Options`](#options)
   * [`unified().use(remarkLintNoDeadUrls[, options])`](#unifieduseremarklintnodeadurls-options)
 * [Related](#related)
+* [Compatibility](#compatibility)
+* [Security](#security)
 * [Contribute](#contribute)
 * [License](#license)
 
 ## What is this?
 
-This package checks whether URLs are alive or not.
+This lint rule checks whether URLs are alive or not.
 
 ## When should I use this?
 
-You can use this package to check that URLs are alive.
+You can use this lint rule to check that URLs are alive.
 
 It’s similar to [`remark-validate-links`][github-remark-validate-links],
 but there’s an important difference.
@@ -48,7 +50,7 @@ You can use it when you want to check URLs programmatically yourself.
 ## Install
 
 This package is [ESM only][github-gist-esm].
-In Node.js (version 16+),
+In Node.js (version 18+),
 install with [npm][npm-install]:
 
 ```sh
@@ -183,6 +185,22 @@ Transform (`(tree: Root, file: VFile) => Promise<Root>`).
   — markdown code style linter
 * [`remark-validate-links`][github-remark-validate-links]
   — ensure local links work
+
+## Compatibility
+
+This projects is compatible with maintained versions of Node.js.
+
+When we cut a new major release,
+we drop support for unmaintained versions of Node.
+This means we try to keep the current release line,
+`remark-lint-no-dead-urls@2`,
+compatible with Node.js 18.
+
+## Security
+
+This package can typically be considered safe.
+Note that this package checks URLs over the internet.
+Don’t use this if you consider that’s dangerous.
 
 ## Contribute
 
