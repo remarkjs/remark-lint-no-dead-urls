@@ -327,7 +327,7 @@ No URLs in here.
     assert.deepEqual(file.messages.map(String), [])
   })
 
-  await t.test('should support redirects', async function () {
+  await t.test('should support permanent redirects', async function () {
     const globalDispatcher = getGlobalDispatcher()
     const mockAgent = new MockAgent()
     mockAgent.enableNetConnect(/(?=a)b/)
@@ -353,5 +353,31 @@ No URLs in here.
     assert.deepEqual(file.messages.map(String), [
       '1:1-1:30: Unexpected redirecting URL `https://example.com/from`, expected final URL `https://example.com/to`'
     ])
+  })
+
+  await t.test('should support temporary redirects', async function () {
+    const globalDispatcher = getGlobalDispatcher()
+    const mockAgent = new MockAgent()
+    mockAgent.enableNetConnect(/(?=a)b/)
+    setGlobalDispatcher(mockAgent)
+    const site = mockAgent.get('https://example.com')
+
+    site.intercept({path: '/from'}).reply(302, '', {
+      headers: {Location: '/to'}
+    })
+
+    site.intercept({path: '/to'}).reply(200, 'ok', {
+      headers: {'Content-Type': 'text/html'}
+    })
+
+    const document = `[a](https://example.com/from)`
+    const file = await remark().use(remarkLintNoDeadUrls).process(document)
+
+    await mockAgent.close()
+    await setGlobalDispatcher(globalDispatcher)
+
+    file.messages.sort(compareMessage)
+
+    assert.deepEqual(file.messages.map(String), [])
   })
 })
