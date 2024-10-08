@@ -36,6 +36,8 @@
     "dead-or-alive": "^1.0.0",
     "devlop": "^1.0.0",
     "is-online": "^11.0.0",
+    "p-all": "^5.0.0",
+    "p-limit": "^6.0.0",
     "unified-lint-rule": "^3.0.0",
     "unist-util-visit": "^5.0.0",
     "vfile": "^6.0.0",
