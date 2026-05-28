@@ -34,6 +34,14 @@ export interface Options {
    */
   skipOffline?: boolean | null | undefined
   /**
+   * List of HTTP status codes that should not be reported as dead
+   * (optional, example: `[429]`);
+   * useful for servers that intermittently respond with rate-limit
+   * (`429 Too Many Requests`) or other transient statuses you do not want to
+   * fail on.
+   */
+  skipStatusCodes?: ReadonlyArray<number> | null | undefined
+  /**
    * List of patterns for URLs that should be skipped
    * (optional);
    * each URL will be tested against each pattern and will be ignored if

@@ -303,6 +303,43 @@ No URLs in here.
     assert.deepEqual(file.messages.map(String), [])
   })
 
+  await t.test('should support `skipStatusCodes`', async function () {
+    const globalDispatcher = getGlobalDispatcher()
+    const mockAgent = new MockAgent()
+    mockAgent.enableNetConnect(/(?=a)b/)
+    setGlobalDispatcher(mockAgent)
+
+    mockAgent
+      .get('https://rate-limited.com')
+      .intercept({path: '/'})
+      .reply(429, 'nok')
+
+    mockAgent
+      .get('https://does-not-exists.com')
+      .intercept({path: '/'})
+      .reply(404, 'nok')
+
+    const document = `
+[a](https://rate-limited.com)
+[b](https://does-not-exists.com)
+`
+    const file = await remark()
+      .use(remarkLintNoDeadUrls, {
+        deadOrAliveOptions: {maxRetries: 0},
+        skipStatusCodes: [429]
+      })
+      .process(document)
+
+    await mockAgent.close()
+    await setGlobalDispatcher(globalDispatcher)
+
+    file.messages.sort(compareMessage)
+
+    assert.deepEqual(file.messages.map(String), [
+      '3:1-3:33: Unexpected dead URL `https://does-not-exists.com/`, expected live URL'
+    ])
+  })
+
   await t.test('should support `deadOrAlive` options', async function () {
     const globalDispatcher = getGlobalDispatcher()
     const mockAgent = new MockAgent()
