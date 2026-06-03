@@ -146,6 +146,11 @@ Configuration (TypeScript type).
   `/^(https?:\/\/)(localhost|127\.0\.0\.1)(:\d+)?/`
 * `skipOffline` (`boolean`, default: `false`)
   — whether to let offline runs pass quietly
+* `skipStatusCodes` (`Array<number>`, optional, example: `[429]`)
+  — list of HTTP status codes that should not be reported as dead;
+  useful for servers that intermittently respond with rate-limit
+  (`429 Too Many Requests`) or other transient statuses you do not want to
+  fail on
 * `skipUrlPatterns` (`Array<RegExp | string>`, optional)
   — list of patterns for URLs that should be skipped;
   each URL will be tested against each pattern and will be ignored if
