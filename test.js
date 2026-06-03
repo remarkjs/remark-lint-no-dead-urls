@@ -16,7 +16,7 @@ test('remark-lint-no-dead-urls', async function (t) {
   await t.test('should work', async function () {
     const globalDispatcher = getGlobalDispatcher()
     const mockAgent = new MockAgent()
-    mockAgent.enableNetConnect(/(?=a)b/)
+    mockAgent.disableNetConnect()
     setGlobalDispatcher(mockAgent)
     const interceptable = mockAgent.get('https://exists.com')
     interceptable.intercept({path: '/'}).reply(200, 'ok')
@@ -80,7 +80,7 @@ No URLs in here.
   await t.test('should checks full URLs', async function () {
     const globalDispatcher = getGlobalDispatcher()
     const mockAgent = new MockAgent()
-    mockAgent.enableNetConnect(/(?=a)b/)
+    mockAgent.disableNetConnect()
     setGlobalDispatcher(mockAgent)
 
     const document = `[](http://a.com)
@@ -109,7 +109,7 @@ No URLs in here.
   await t.test('should check relative URLs w/ `from`', async function () {
     const globalDispatcher = getGlobalDispatcher()
     const mockAgent = new MockAgent()
-    mockAgent.enableNetConnect(/(?=a)b/)
+    mockAgent.disableNetConnect()
     setGlobalDispatcher(mockAgent)
 
     const document = `
@@ -147,7 +147,7 @@ No URLs in here.
     async function () {
       const globalDispatcher = getGlobalDispatcher()
       const mockAgent = new MockAgent()
-      mockAgent.enableNetConnect(/(?=a)b/)
+      mockAgent.disableNetConnect()
       setGlobalDispatcher(mockAgent)
 
       const document = '[](a.md)'
@@ -174,7 +174,7 @@ No URLs in here.
   await t.test('should check definitions, images', async function () {
     const globalDispatcher = getGlobalDispatcher()
     const mockAgent = new MockAgent()
-    mockAgent.enableNetConnect(/(?=a)b/)
+    mockAgent.disableNetConnect()
     setGlobalDispatcher(mockAgent)
 
     const document = `
@@ -201,7 +201,7 @@ No URLs in here.
   await t.test('should skip URLs w/ unknown protocols', async function () {
     const globalDispatcher = getGlobalDispatcher()
     const mockAgent = new MockAgent()
-    mockAgent.enableNetConnect(/(?=a)b/)
+    mockAgent.disableNetConnect()
     setGlobalDispatcher(mockAgent)
 
     const document = `
@@ -224,7 +224,7 @@ No URLs in here.
   await t.test('should ignore localhost w/ `skipLocalhost`', async function () {
     const globalDispatcher = getGlobalDispatcher()
     const mockAgent = new MockAgent()
-    mockAgent.enableNetConnect(/(?=a)b/)
+    mockAgent.disableNetConnect()
     setGlobalDispatcher(mockAgent)
 
     const document = `
@@ -253,7 +253,7 @@ No URLs in here.
   await t.test('should support anchors', async function () {
     const globalDispatcher = getGlobalDispatcher()
     const mockAgent = new MockAgent()
-    mockAgent.enableNetConnect(/(?=a)b/)
+    mockAgent.disableNetConnect()
     setGlobalDispatcher(mockAgent)
     const site = mockAgent.get('https://example.com')
 
@@ -280,7 +280,7 @@ No URLs in here.
   await t.test('should support `skipUrlPatterns`', async function () {
     const globalDispatcher = getGlobalDispatcher()
     const mockAgent = new MockAgent()
-    mockAgent.enableNetConnect(/(?=a)b/)
+    mockAgent.disableNetConnect()
     setGlobalDispatcher(mockAgent)
 
     const document = `
@@ -306,7 +306,7 @@ No URLs in here.
   await t.test('should support `deadOrAlive` options', async function () {
     const globalDispatcher = getGlobalDispatcher()
     const mockAgent = new MockAgent()
-    mockAgent.enableNetConnect(/(?=a)b/)
+    mockAgent.disableNetConnect()
     setGlobalDispatcher(mockAgent)
     const site = mockAgent.get('https://example.com')
 
@@ -330,7 +330,7 @@ No URLs in here.
   await t.test('should support permanent redirects', async function () {
     const globalDispatcher = getGlobalDispatcher()
     const mockAgent = new MockAgent()
-    mockAgent.enableNetConnect(/(?=a)b/)
+    mockAgent.disableNetConnect()
     setGlobalDispatcher(mockAgent)
     const site = mockAgent.get('https://example.com')
 
@@ -358,7 +358,7 @@ No URLs in here.
   await t.test('should support temporary redirects', async function () {
     const globalDispatcher = getGlobalDispatcher()
     const mockAgent = new MockAgent()
-    mockAgent.enableNetConnect(/(?=a)b/)
+    mockAgent.disableNetConnect()
     setGlobalDispatcher(mockAgent)
     const site = mockAgent.get('https://example.com')
 

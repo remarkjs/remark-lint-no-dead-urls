@@ -216,15 +216,19 @@ abide by its terms.
 
 [MIT][file-license] © [David Clark][github-david-clark]
 
-[api-remark-lint-no-dead-urls]: #unifieduseremarklintnodeadurls-options
-
 [api-options]: #options
+
+[api-remark-lint-no-dead-urls]: #unifieduseremarklintnodeadurls-options
 
 [badge-backers-image]: https://opencollective.com/unified/backers/badge.svg
 
 [badge-build-image]: https://github.com/remarkjs/remark-lint-no-dead-urls/actions/workflows/main.yml/badge.svg
 
 [badge-build-url]: https://github.com/remarkjs/remark-lint-no-dead-urls/actions
+
+[badge-chat-image]: https://img.shields.io/badge/chat-discussions-success.svg
+
+[badge-chat-url]: https://github.com/remarkjs/remark/discussions
 
 [badge-collective-url]: https://opencollective.com/unified
 
@@ -242,33 +246,29 @@ abide by its terms.
 
 [badge-sponsors-image]: https://opencollective.com/unified/sponsors/badge.svg
 
-[badge-chat-image]: https://img.shields.io/badge/chat-discussions-success.svg
-
-[badge-chat-url]: https://github.com/remarkjs/remark/discussions
-
 [esm-sh]: https://esm.sh
 
 [file-license]: license
 
 [github-david-clark]: https://github.com/davidtheclark
 
-[github-dead-or-alive-options]: https://github.com/wooorm/dead-or-alive#options
-
 [github-dead-or-alive]: https://github.com/wooorm/dead-or-alive
+
+[github-dead-or-alive-options]: https://github.com/wooorm/dead-or-alive#options
 
 [github-gist-esm]: https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c
 
+[github-remark-lint]: https://github.com/remarkjs/remark-lint
+
 [github-remark-validate-links]: https://github.com/remarkjs/remark-validate-links
 
-[github-remark-lint]: https://github.com/remarkjs/remark-lint
+[health]: https://github.com/remarkjs/.github
 
 [health-coc]: https://github.com/remarkjs/.github/blob/main/code-of-conduct.md
 
 [health-contributing]: https://github.com/remarkjs/.github/blob/main/contributing.md
 
 [health-support]: https://github.com/remarkjs/.github/blob/main/support.md
-
-[health]: https://github.com/remarkjs/.github
 
 [npm-install]: https://docs.npmjs.com/cli/install
 
